@@ -42,6 +42,13 @@ export interface AuthConfig {
   apiKeyLocation?: 'header' | 'query';
 }
 
+/** Per-request variable override — highest precedence during resolution. */
+export interface RequestVariable {
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
 export interface ApiRequest {
   id: string;
   name: string;
@@ -54,6 +61,8 @@ export interface ApiRequest {
   /** Rows for form-data and x-www-form-urlencoded body types. */
   bodyFormFields: FormField[];
   auth: AuthConfig;
+  /** Per-request variable overrides (highest precedence). UI not yet implemented. */
+  variables: RequestVariable[];
   collectionId?: string | null;
   folderId?: string | null;
   createdAt: string;

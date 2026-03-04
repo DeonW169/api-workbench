@@ -97,6 +97,7 @@ export class RequestsService {
       bodyRaw: '',
       bodyFormFields: [],
       auth: { type: 'none' },
+      variables: [],
       collectionId: collectionId ?? undefined,
       folderId: folderId ?? undefined,
       createdAt: now,

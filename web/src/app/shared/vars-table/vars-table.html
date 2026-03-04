@@ -1,0 +1,85 @@
+<div class="vars-table">
+
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <div class="vars-thead">
+    <span class="col-enabled" matTooltip="Enabled"></span>
+    <span class="col-key">Key</span>
+    <span class="col-value">Value</span>
+    <span class="col-secret" matTooltip="Secret">
+      <mat-icon class="secret-icon">visibility_off</mat-icon>
+    </span>
+    <span class="col-remove"></span>
+  </div>
+
+  <!-- ── Rows ───────────────────────────────────────────────────────────────── -->
+  @for (row of rows(); track $index; let i = $index) {
+    <div class="vars-row">
+
+      <!-- Enabled -->
+      <mat-checkbox
+        class="col-enabled"
+        [checked]="row.enabled"
+        (change)="setEnabled(i, $event.checked)"
+      />
+
+      <!-- Key -->
+      <input
+        class="var-input col-key"
+        [value]="row.key"
+        (input)="setKey(i, $event)"
+        placeholder="key"
+        spellcheck="false"
+        autocomplete="off"
+      />
+
+      <!-- Value + optional reveal button -->
+      <div class="col-value value-cell">
+        <input
+          class="var-input value-input"
+          [value]="row.value"
+          (input)="setValue(i, $event)"
+          [type]="row.secret && !isRevealed(i) ? 'password' : 'text'"
+          placeholder="value"
+          spellcheck="false"
+          autocomplete="off"
+        />
+        @if (row.secret) {
+          <button
+            mat-icon-button
+            class="reveal-btn"
+            [matTooltip]="isRevealed(i) ? 'Hide value' : 'Reveal value'"
+            (click)="toggleReveal(i)"
+          >
+            <mat-icon>{{ isRevealed(i) ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Secret checkbox -->
+      <mat-checkbox
+        class="col-secret"
+        [checked]="row.secret ?? false"
+        (change)="setSecret(i, $event.checked)"
+        matTooltip="Treat as secret"
+      />
+
+      <!-- Remove -->
+      <button
+        mat-icon-button
+        class="col-remove remove-btn"
+        (click)="remove(i)"
+        matTooltip="Remove"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+
+    </div>
+  }
+
+  <!-- ── Add button ─────────────────────────────────────────────────────────── -->
+  <button mat-button class="add-var-btn" (click)="add()">
+    <mat-icon>add</mat-icon>
+    Add Variable
+  </button>
+
+</div>

@@ -148,6 +148,7 @@ function createBlankTab(): WorkspaceTab {
     bodyRaw: '',
     bodyFormFields: [],
     auth: { type: 'none' },
+    variables: [],
     createdAt: now,
     updatedAt: now,
   };

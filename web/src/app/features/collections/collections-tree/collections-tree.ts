@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -8,7 +9,12 @@ import { FoldersService } from '../../../core/state/folders';
 import { RequestsService } from '../../../core/state/requests';
 import { WorkspaceService } from '../../../core/state/workspace';
 import { ApiRequest } from '../../../shared/models/api-request.model';
+import { Collection } from '../../../shared/models/collection.model';
 import { Folder } from '../../../shared/models/folder.model';
+import {
+  CollectionVarsEditor,
+  CollectionVarsEditorData,
+} from '../collection-vars-editor/collection-vars-editor';
 
 type EditTarget = 'collection' | 'folder' | 'request';
 
@@ -19,6 +25,7 @@ type EditTarget = 'collection' | 'folder' | 'request';
   styleUrl: './collections-tree.scss',
 })
 export class CollectionsTree {
+  private readonly dialog = inject(MatDialog);
   readonly collService = inject(CollectionsService);
   readonly folderService = inject(FoldersService);
   readonly reqService = inject(RequestsService);
@@ -99,6 +106,16 @@ export class CollectionsTree {
   openRequest(req: ApiRequest): void {
     if (this.editingId()) return;
     this.workspace.loadRequest(req);
+  }
+
+  // ── Collection variables ──────────────────────────────────────────────────
+
+  openVariables(coll: Collection, event: MouseEvent): void {
+    event.stopPropagation();
+    this.dialog.open<CollectionVarsEditor, CollectionVarsEditorData>(
+      CollectionVarsEditor,
+      { data: { collection: coll }, width: '640px', maxHeight: '80vh' },
+    );
   }
 
   // ── Create ────────────────────────────────────────────────────────────────

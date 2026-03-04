@@ -77,7 +77,23 @@ export function resolveRequest(request: ApiRequest, vars: VariableMap): Resolved
   };
 }
 
-// ── Environment helpers ───────────────────────────────────────────────────────
+// ── Variable map builders ─────────────────────────────────────────────────────
+
+/**
+ * Build a VariableMap from any array of `{ key, value, enabled }` variables.
+ * Disabled entries and blank keys are excluded.
+ *
+ * Use this for globals, collection variables, and request-level overrides.
+ */
+export function buildVarMap(
+  variables: { key: string; value: string; enabled: boolean }[],
+): VariableMap {
+  return Object.fromEntries(
+    variables
+      .filter(v => v.enabled && v.key.trim() !== '')
+      .map(v => [v.key.trim(), v.value]),
+  );
+}
 
 /**
  * Build a VariableMap from an EnvironmentModel.
@@ -86,11 +102,7 @@ export function resolveRequest(request: ApiRequest, vars: VariableMap): Resolved
  */
 export function buildEnvMap(env: EnvironmentModel | null | undefined): VariableMap {
   if (!env) return {};
-  return Object.fromEntries(
-    env.variables
-      .filter(v => v.enabled && v.key.trim() !== '')
-      .map(v => [v.key.trim(), v.value]),
-  );
+  return buildVarMap(env.variables);
 }
 
 // ── Diagnostic helpers ────────────────────────────────────────────────────────

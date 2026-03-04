@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Collection } from '../../shared/models/collection.model';
+import { Collection, CollectionVariable } from '../../shared/models/collection.model';
 import { AppDbService } from '../storage/app-db.service';
+import { buildVarMap, VariableMap } from '../utils/variable-resolver';
 
 const DEFAULT_COLLECTION_NAME = 'My Requests';
 
@@ -48,6 +49,25 @@ export class CollectionsService {
     this.db.collections.where('id').equals(id).modify({ name: trimmed, updatedAt });
   }
 
+  /** Replace the variable list for a collection. */
+  setVariables(id: string, variables: CollectionVariable[]): void {
+    const updatedAt = new Date().toISOString();
+    this.collections.update(cols =>
+      cols.map(c => (c.id === id ? { ...c, variables, updatedAt } : c)),
+    );
+    this.db.collections.where('id').equals(id).modify({ variables, updatedAt });
+  }
+
+  /**
+   * Build a VariableMap from the variables of a specific collection.
+   * Returns an empty map if the collection is not found or has no variables.
+   */
+  varMapForCollection(collectionId: string | null | undefined): VariableMap {
+    if (!collectionId) return {};
+    const col = this.collections().find(c => c.id === collectionId);
+    return col ? buildVarMap(col.variables) : {};
+  }
+
   /**
    * Delete a collection.
    * Caller is responsible for handling orphaned requests and folders
@@ -63,7 +83,7 @@ export class CollectionsService {
 
 function createCollection(name: string): Collection {
   const now = new Date().toISOString();
-  return { id: crypto.randomUUID(), name, createdAt: now, updatedAt: now };
+  return { id: crypto.randomUUID(), name, variables: [], createdAt: now, updatedAt: now };
 }
 
 function byName(a: Collection, b: Collection): number {

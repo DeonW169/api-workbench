@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AppDbService } from './app-db.service';
+import { CollectionsService } from '../state/collections';
+import { GlobalsService } from '../state/globals';
 import { RequestsService } from '../state/requests';
 import { EnvironmentsService } from '../state/environments';
 import { HistoryService } from '../state/history';
@@ -23,6 +25,8 @@ const ERROR_MESSAGES: Record<ImportError, string> = {
 @Injectable({ providedIn: 'root' })
 export class DbTransferService {
   private readonly db = inject(AppDbService);
+  private readonly collections = inject(CollectionsService);
+  private readonly globals = inject(GlobalsService);
   private readonly requests = inject(RequestsService);
   private readonly environments = inject(EnvironmentsService);
   private readonly history = inject(HistoryService);
@@ -54,6 +58,8 @@ export class DbTransferService {
 
     // Refresh all in-memory signal stores
     await Promise.all([
+      this.collections.init(),
+      this.globals.init(),
       this.requests.init(),
       this.environments.init(),
       this.history.init(),

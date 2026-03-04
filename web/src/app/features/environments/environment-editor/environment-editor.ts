@@ -7,10 +7,8 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { EnvironmentModel, EnvironmentVariable } from '../../../shared/models/environment.model';
+import { VarRow, VarsTable } from '../../../shared/vars-table/vars-table';
 
 export interface EnvironmentEditorData {
   environment: EnvironmentModel | null;
@@ -23,9 +21,7 @@ export interface EnvironmentEditorData {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule,
-    MatCheckboxModule,
-    MatTooltipModule,
+    VarsTable,
   ],
   templateUrl: './environment-editor.html',
   styleUrl: './environment-editor.scss',
@@ -37,48 +33,11 @@ export class EnvironmentEditor {
   readonly isNew = !this.data.environment;
 
   readonly name = signal(this.data.environment?.name ?? '');
-  readonly variables = signal<EnvironmentVariable[]>(
+  readonly rows = signal<VarRow[]>(
     this.data.environment?.variables.map(v => ({ ...v })) ?? [],
   );
 
   readonly canSave = computed(() => this.name().trim().length > 0);
-
-  addVariable(): void {
-    this.variables.update(vars => [
-      ...vars,
-      { key: '', value: '', enabled: true, secret: false },
-    ]);
-  }
-
-  removeVariable(index: number): void {
-    this.variables.update(vars => vars.filter((_, i) => i !== index));
-  }
-
-  setVarKey(index: number, event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.variables.update(vars =>
-      vars.map((v, i) => (i === index ? { ...v, key: value } : v)),
-    );
-  }
-
-  setVarValue(index: number, event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.variables.update(vars =>
-      vars.map((v, i) => (i === index ? { ...v, value } : v)),
-    );
-  }
-
-  setEnabled(index: number, enabled: boolean): void {
-    this.variables.update(vars =>
-      vars.map((v, i) => (i === index ? { ...v, enabled } : v)),
-    );
-  }
-
-  setSecret(index: number, secret: boolean): void {
-    this.variables.update(vars =>
-      vars.map((v, i) => (i === index ? { ...v, secret } : v)),
-    );
-  }
 
   setName(event: Event): void {
     this.name.set((event.target as HTMLInputElement).value);
@@ -90,7 +49,7 @@ export class EnvironmentEditor {
     const env: EnvironmentModel = {
       id: this.data.environment?.id ?? crypto.randomUUID(),
       name: this.name().trim(),
-      variables: this.variables(),
+      variables: this.rows() as EnvironmentVariable[],
       createdAt: this.data.environment?.createdAt ?? now,
       updatedAt: now,
     };

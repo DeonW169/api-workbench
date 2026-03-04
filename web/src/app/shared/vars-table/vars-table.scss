@@ -1,0 +1,167 @@
+// ── Column widths ─────────────────────────────────────────────────────────────
+
+$col-enabled: 40px;
+$col-key:     1fr;
+$col-value:   1fr;
+$col-secret:  40px;
+$col-remove:  40px;
+
+// ── Table shell ───────────────────────────────────────────────────────────────
+
+.vars-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+// ── Grid layout shared by header + rows ───────────────────────────────────────
+
+.vars-thead,
+.vars-row {
+  display: grid;
+  grid-template-columns: $col-enabled $col-key $col-value $col-secret $col-remove;
+  align-items: center;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.vars-thead {
+  padding: 4px 0;
+  background: var(--mat-sys-surface-container);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-weight: 500;
+
+  .col-key,
+  .col-value {
+    padding: 0 8px;
+  }
+
+  .col-secret,
+  .col-enabled {
+    display: flex;
+    justify-content: center;
+  }
+
+  .secret-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ── Row ───────────────────────────────────────────────────────────────────────
+
+.vars-row {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  &:hover {
+    background: var(--mat-sys-surface-container-low);
+
+    .remove-btn { opacity: 1; }
+  }
+
+  .col-enabled {
+    display: flex;
+    justify-content: center;
+  }
+
+  .col-secret {
+    display: flex;
+    justify-content: center;
+  }
+
+  .col-remove {
+    display: flex;
+    justify-content: center;
+
+    .remove-btn {
+      opacity: 0;
+      width: 32px;
+      height: 32px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+// ── Value cell (input + reveal button) ────────────────────────────────────────
+
+.value-cell {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+
+.var-input {
+  height: 36px;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--mat-sys-on-surface);
+  font-family: 'Roboto Mono', 'Consolas', monospace;
+  font-size: 0.8125rem;
+
+  &:focus {
+    background: var(--mat-sys-surface-container-low);
+  }
+
+  &::placeholder {
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.5;
+  }
+}
+
+.col-key {
+  width: 100%;
+}
+
+.value-input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+// ── Reveal toggle ─────────────────────────────────────────────────────────────
+
+.reveal-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.5;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 1; }
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// ── Add button ────────────────────────────────────────────────────────────────
+
+.add-var-btn {
+  align-self: flex-start;
+  margin: 4px;
+  font-size: 0.8125rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

@@ -2,17 +2,21 @@ import { Injectable, computed, inject, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiRequest } from '../../shared/models/api-request.model';
 import { HistoryItem } from '../../shared/models/history-item.model';
+import { CollectionsService } from './collections';
 import { EnvironmentsService } from './environments';
+import { GlobalsService } from './globals';
 import { HistoryService } from './history';
 import { TabsService } from './tabs';
-import { VariableResolverService } from '../utils/variable-resolver.service';
+import { VariableResolverService, buildVarMap } from '../utils/variable-resolver.service';
 import { RunnerApiService } from '../api/runner-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceService {
 
   private readonly tabsService = inject(TabsService);
+  private readonly collectionsService = inject(CollectionsService);
   private readonly envService = inject(EnvironmentsService);
+  private readonly globalsService = inject(GlobalsService);
   private readonly historyService = inject(HistoryService);
   private readonly resolver = inject(VariableResolverService);
   private readonly runner = inject(RunnerApiService);
@@ -86,8 +90,14 @@ export class WorkspaceService {
     this.tabsService.setTabLoading(tabId, true);
 
     try {
-      const envMap = this.envService.activeVarMap();
-      const resolved = this.resolver.resolveForExecution(request, envMap);
+      // Merge variable scopes: globals < collection < environment < request overrides
+      const globalsMap    = this.globalsService.varMap();
+      const collectionMap = this.collectionsService.varMapForCollection(request.collectionId);
+      const envMap        = this.envService.activeVarMap();
+      const requestMap    = buildVarMap(request.variables ?? []);
+      const resolved = this.resolver.resolveForExecution(
+        request, globalsMap, collectionMap, envMap, requestMap,
+      );
       const withAuth = applyAuth(resolved);
 
       const response = await firstValueFrom(this.runner.execute(withAuth));

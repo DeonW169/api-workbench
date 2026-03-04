@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Global Variables</h2>
+
+<mat-dialog-content>
+  <p class="scope-hint">
+    Available across all collections and environments.
+    Lowest precedence — overridden by collection, environment, and request variables.
+  </p>
+  <app-vars-table [(rows)]="rows" />
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button (click)="save()">Save</button>
+</mat-dialog-actions>

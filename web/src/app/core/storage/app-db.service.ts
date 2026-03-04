@@ -4,6 +4,7 @@ import { ApiRequest } from '../../shared/models/api-request.model';
 import { Collection } from '../../shared/models/collection.model';
 import { EnvironmentModel } from '../../shared/models/environment.model';
 import { Folder } from '../../shared/models/folder.model';
+import { GlobalsRecord } from '../../shared/models/globals.model';
 import { HistoryItem } from '../../shared/models/history-item.model';
 
 @Injectable({ providedIn: 'root' })
@@ -13,6 +14,7 @@ export class AppDbService extends Dexie {
   folders!: Table<Folder, string>;
   environments!: Table<EnvironmentModel, string>;
   history!: Table<HistoryItem, string>;
+  globals!: Table<GlobalsRecord, string>;
 
   constructor() {
     super('api-workbench-db');
@@ -32,6 +34,16 @@ export class AppDbService extends Dexie {
       folders: 'id, collectionId, parentFolderId, updatedAt',
       environments: 'id, name, updatedAt',
       history: 'id, executedAt',
+    });
+
+    // Version 3: adds globals singleton table.
+    this.version(3).stores({
+      requests: 'id, name, method, updatedAt, collectionId, folderId',
+      collections: 'id, name, updatedAt',
+      folders: 'id, collectionId, parentFolderId, updatedAt',
+      environments: 'id, name, updatedAt',
+      history: 'id, executedAt',
+      globals: 'id',
     });
   }
 }

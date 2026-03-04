@@ -16,6 +16,7 @@ import { SettingsMenu } from './settings-menu/settings-menu';
 import { CollectionsService } from '../../core/state/collections';
 import { EnvironmentsService } from '../../core/state/environments';
 import { FoldersService } from '../../core/state/folders';
+import { GlobalsService } from '../../core/state/globals';
 import { HistoryService } from '../../core/state/history';
 import { WorkspaceService } from '../../core/state/workspace';
 import { RequestsService } from '../../core/state/requests';
@@ -53,6 +54,7 @@ export class AppShell {
     inject(CollectionsService).init();
     inject(FoldersService).init();
     inject(EnvironmentsService).init();
+    inject(GlobalsService).init();
     inject(HistoryService).init();
     this.requestsService.init();
   }

@@ -1,10 +1,17 @@
-<!-- Hidden file input — triggered programmatically -->
+<!-- Hidden file inputs — triggered programmatically -->
 <input
   #fileInput
   type="file"
   accept="application/json,.json"
   style="display:none"
   (change)="onFileSelected($event)"
+/>
+<input
+  #varsFileInput
+  type="file"
+  accept="application/json,.json"
+  style="display:none"
+  (change)="onVarsFileSelected($event)"
 />
 
 <button
@@ -17,6 +24,25 @@
 </button>
 
 <mat-menu #settingsMenu>
+  <button mat-menu-item (click)="openGlobals()">
+    <mat-icon>public</mat-icon>
+    Global variables
+  </button>
+
+  <mat-divider />
+
+  <button mat-menu-item (click)="onExportVars()">
+    <mat-icon>ios_share</mat-icon>
+    Export variables
+  </button>
+
+  <button mat-menu-item (click)="openVarsFilePicker()" [disabled]="isImporting()">
+    <mat-icon>file_download</mat-icon>
+    {{ isImporting() ? 'Importing…' : 'Import variables' }}
+  </button>
+
+  <mat-divider />
+
   <button mat-menu-item (click)="onExport()">
     <mat-icon>download</mat-icon>
     Export backup

@@ -5,14 +5,16 @@ import {
   VariableMap,
   ResolvedRequest,
   buildEnvMap,
+  buildVarMap,
   mergeVars,
   resolveRequest,
   resolveString,
   findUnresolvedVars,
 } from './variable-resolver';
 
-// Re-export types so callers only need to import from this service.
+// Re-export so callers only need to import from this service.
 export type { VariableMap, ResolvedRequest };
+export { buildVarMap };
 
 /**
  * Angular service that exposes variable resolution with an ergonomic API.
