@@ -1,0 +1,34 @@
+<div class="tabs-bar">
+  <div class="tabs-list">
+    @for (tab of tabs(); track tab.id) {
+      <div
+        class="tab"
+        [class.active]="activeTabId() === tab.id"
+        (click)="setActive(tab.id)"
+      >
+        <span class="tab-method" [attr.data-method]="tab.method">{{ tab.method }}</span>
+        <span class="tab-label">{{ tab.label }}</span>
+        @if (tab.dirty) {
+          <span class="tab-dirty-dot" matTooltip="Unsaved changes"></span>
+        }
+        <button
+          mat-icon-button
+          class="tab-close"
+          (click)="closeTab(tab.id, $event)"
+          matTooltip="Close tab"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  <button
+    mat-icon-button
+    class="add-tab-btn"
+    (click)="addTab()"
+    matTooltip="New tab"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+</div>

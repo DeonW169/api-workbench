@@ -1,0 +1,68 @@
+@if (reqService.requests().length === 0) {
+  <div class="empty-state">
+    <mat-icon>folder_open</mat-icon>
+    <span>No saved requests</span>
+    <span class="empty-hint">Use Save in the toolbar to add one</span>
+  </div>
+} @else {
+
+  <!-- Default collection header -->
+  <div class="collection-header">
+    <mat-icon class="coll-icon">folder</mat-icon>
+    <span class="coll-name">My Requests</span>
+    <span class="coll-count">{{ reqService.requests().length }}</span>
+  </div>
+
+  <!-- Request list -->
+  @for (req of reqService.requests(); track req.id) {
+    <div
+      class="req-item"
+      [class.active]="isActive(req.id)"
+      (click)="open(req)"
+    >
+      <span class="method-badge" [attr.data-method]="req.method">{{ req.method }}</span>
+
+      @if (editingId() === req.id) {
+        <input
+          class="name-input"
+          [attr.data-rename-id]="req.id"
+          [value]="editingName()"
+          (input)="editingName.set($any($event.target).value)"
+          (blur)="commitRename(req.id)"
+          (keydown.enter)="$any($event.target).blur()"
+          (keydown.escape)="cancelRename()"
+          (click)="$event.stopPropagation()"
+        />
+      } @else {
+        <span class="req-name" (dblclick)="startRename(req, $event)">{{ req.name }}</span>
+      }
+
+      <span class="req-actions">
+        <button
+          mat-icon-button
+          class="action-btn"
+          (click)="startRename(req, $event)"
+          matTooltip="Rename"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="action-btn"
+          (click)="duplicate(req.id, $event)"
+          matTooltip="Duplicate"
+        >
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="action-btn delete-btn"
+          (click)="delete(req.id, $event)"
+          matTooltip="Delete"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </span>
+    </div>
+  }
+}

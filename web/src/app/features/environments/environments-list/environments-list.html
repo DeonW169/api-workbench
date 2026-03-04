@@ -1,0 +1,45 @@
+<div class="list-toolbar">
+  <button mat-stroked-button class="new-btn" (click)="openNew()">
+    <mat-icon>add</mat-icon>
+    New Environment
+  </button>
+</div>
+
+@if (envService.environments().length === 0) {
+  <div class="empty-state">
+    <mat-icon>tune</mat-icon>
+    <span>No environments yet</span>
+  </div>
+}
+
+@for (env of envService.environments(); track env.id) {
+  <div
+    class="env-item"
+    [class.active]="envService.activeId() === env.id"
+    (click)="select(env.id)"
+  >
+    <mat-icon class="env-dot">circle</mat-icon>
+    <span class="env-name">{{ env.name }}</span>
+    <span class="env-count" [class.hidden]="env.variables.length === 0">
+      {{ env.variables.length }}
+    </span>
+    <span class="env-actions">
+      <button
+        mat-icon-button
+        class="action-btn"
+        (click)="openEdit(env, $event)"
+        matTooltip="Edit"
+      >
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        class="action-btn delete-btn"
+        (click)="delete(env.id, $event)"
+        matTooltip="Delete"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </span>
+  </div>
+}

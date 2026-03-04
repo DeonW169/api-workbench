@@ -1,0 +1,38 @@
+@if (historyService.items().length === 0) {
+  <div class="empty-state">
+    <mat-icon>history</mat-icon>
+    <span>No requests yet</span>
+    <span class="empty-hint">Send a request to see it here</span>
+  </div>
+} @else {
+  <!-- List toolbar -->
+  <div class="list-toolbar">
+    <span class="list-count">{{ historyService.items().length }} requests</span>
+    <button
+      mat-icon-button
+      class="clear-btn"
+      matTooltip="Clear history"
+      (click)="clear()"
+    >
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
+  </div>
+
+  <!-- History rows -->
+  @for (item of historyService.items(); track item.id) {
+    <div class="history-item" (click)="open(item)">
+      <span class="method-badge" [attr.data-method]="item.request.method">
+        {{ item.request.method }}
+      </span>
+
+      <span class="item-label">{{ displayLabel(item) }}</span>
+
+      <span class="item-meta">
+        <span class="status-badge" [attr.data-range]="statusRange(item.response.status)">
+          {{ item.response.status }}
+        </span>
+        <span class="time-ago">{{ timeAgo(item.executedAt) }}</span>
+      </span>
+    </div>
+  }
+}

@@ -1,0 +1,36 @@
+<!-- Hidden file input — triggered programmatically -->
+<input
+  #fileInput
+  type="file"
+  accept="application/json,.json"
+  style="display:none"
+  (change)="onFileSelected($event)"
+/>
+
+<button
+  mat-icon-button
+  class="toolbar-btn"
+  matTooltip="Settings"
+  [matMenuTriggerFor]="settingsMenu"
+>
+  <mat-icon>settings</mat-icon>
+</button>
+
+<mat-menu #settingsMenu>
+  <button mat-menu-item (click)="onExport()">
+    <mat-icon>download</mat-icon>
+    Export backup
+  </button>
+
+  <button mat-menu-item (click)="openFilePicker()" [disabled]="isImporting()">
+    <mat-icon>upload</mat-icon>
+    {{ isImporting() ? 'Importing…' : 'Import backup' }}
+  </button>
+
+  @if (importError()) {
+    <div class="import-error">
+      <mat-icon>error_outline</mat-icon>
+      {{ importError() }}
+    </div>
+  }
+</mat-menu>

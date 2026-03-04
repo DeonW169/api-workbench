@@ -1,0 +1,129 @@
+:host {
+  display: block;
+}
+
+.tabs-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--mat-sys-surface-container-low);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  &::-webkit-scrollbar {
+    height: 3px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--mat-sys-outline-variant);
+  }
+}
+
+.tabs-list {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 12px;
+  min-width: 140px;
+  max-width: 220px;
+  height: 38px;
+  cursor: pointer;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8rem;
+  position: relative;
+  user-select: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+  }
+
+  &.active {
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    border-bottom: 2px solid var(--mat-sys-primary);
+  }
+}
+
+.tab-method {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
+  color: var(--mat-sys-primary);
+  white-space: nowrap;
+
+  &[data-method='POST'] {
+    background: color-mix(in srgb, #4caf50 15%, transparent);
+    color: #4caf50;
+  }
+  &[data-method='PUT'] {
+    background: color-mix(in srgb, #ff9800 15%, transparent);
+    color: #ff9800;
+  }
+  &[data-method='PATCH'] {
+    background: color-mix(in srgb, #ff9800 15%, transparent);
+    color: #ff9800;
+  }
+  &[data-method='DELETE'] {
+    background: color-mix(in srgb, #f44336 15%, transparent);
+    color: #f44336;
+  }
+}
+
+.tab-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.tab-dirty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mat-sys-primary);
+  flex-shrink: 0;
+}
+
+.tab-close {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding: 0;
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+  }
+
+  .tab:hover & {
+    opacity: 1;
+  }
+}
+
+.add-tab-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  align-self: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}

@@ -1,0 +1,124 @@
+<div class="shell-wrapper">
+  <!-- Top toolbar -->
+  <mat-toolbar class="top-toolbar">
+    <span class="app-title">API Workbench</span>
+
+    <span class="toolbar-spacer"></span>
+
+    <app-environment-selector />
+
+    <button mat-stroked-button class="toolbar-btn" matTooltip="New Request" (click)="newRequest()">
+      <mat-icon>add</mat-icon>
+      New Request
+    </button>
+
+    <button
+      mat-flat-button
+      class="toolbar-btn save-btn"
+      matTooltip="Save current request"
+      [disabled]="!workspace.currentRequest()"
+      (click)="saveRequest()"
+    >
+      <mat-icon>save</mat-icon>
+      Save
+    </button>
+
+    <app-settings-menu />
+  </mat-toolbar>
+
+  <!-- Body: activity bar + sidenav + content -->
+  <div class="shell-body">
+
+    <!-- Activity bar -->
+    <nav class="activity-bar">
+      <button
+        mat-icon-button
+        class="activity-btn"
+        [class.active]="activeSection() === 'collections'"
+        (click)="setSection('collections')"
+        matTooltip="Collections"
+        matTooltipPosition="right"
+      >
+        <mat-icon>folder_open</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        class="activity-btn"
+        [class.active]="activeSection() === 'history'"
+        (click)="setSection('history')"
+        matTooltip="History"
+        matTooltipPosition="right"
+      >
+        <mat-icon>history</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        class="activity-btn"
+        [class.active]="activeSection() === 'environments'"
+        (click)="setSection('environments')"
+        matTooltip="Environments"
+        matTooltipPosition="right"
+      >
+        <mat-icon>tune</mat-icon>
+      </button>
+    </nav>
+
+    <!-- Sidenav panel -->
+    <aside class="sidenav">
+      <div class="sidenav-header">
+        @switch (activeSection()) {
+          @case ('collections') { Collections }
+          @case ('history') { History }
+          @case ('environments') { Environments }
+        }
+      </div>
+
+      <mat-divider />
+
+      <div class="sidenav-content">
+        @switch (activeSection()) {
+          @case ('collections') {
+            <app-collections-tree />
+          }
+          @case ('history') {
+            <app-history-list />
+          }
+          @case ('environments') {
+            <app-environments-list />
+          }
+        }
+      </div>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="main-content">
+      <app-request-tabs class="tabs-row" />
+
+      <mat-divider />
+
+      <div class="work-area">
+        <section class="editor-pane">
+          <app-request-editor
+            [requestToLoad]="workspace.requestToLoad()"
+            [isLoading]="workspace.isLoading()"
+            (requestChange)="workspace.setRequest($event)"
+            (sendClicked)="workspace.execute()"
+          />
+        </section>
+
+        <mat-divider [vertical]="true" />
+
+        <section class="response-pane">
+          <app-response-viewer
+            [response]="workspace.response()"
+            [isLoading]="workspace.isLoading()"
+            [errorMessage]="workspace.errorMessage()"
+          />
+        </section>
+      </div>
+    </main>
+
+  </div>
+</div>

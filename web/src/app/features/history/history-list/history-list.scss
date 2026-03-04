@@ -1,0 +1,161 @@
+:host {
+  // Method colour tokens (same palette as collections-tree)
+  --method-get:    #4db6ac;
+  --method-post:   #81c784;
+  --method-put:    #64b5f6;
+  --method-patch:  #ffb74d;
+  --method-delete: #ef9a9a;
+
+  // Status colour tokens
+  --status-2xx: #81c784;
+  --status-4xx: #ffb74d;
+  --status-5xx: #ef9a9a;
+  --status-other: var(--mat-sys-on-surface-variant);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 48px 16px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.5;
+
+  mat-icon {
+    font-size: 36px;
+    height: 36px;
+    width: 36px;
+    margin-bottom: 4px;
+  }
+
+  span {
+    font-size: 0.875rem;
+  }
+
+  .empty-hint {
+    font-size: 0.75rem;
+    text-align: center;
+    opacity: 0.7;
+  }
+}
+
+// ── List toolbar ──────────────────────────────────────────────────────────────
+
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px 4px;
+
+  .list-count {
+    flex: 1;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .clear-btn {
+    width: 28px;
+    height: 28px;
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.6;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      opacity: 1;
+      color: var(--mat-sys-error);
+    }
+  }
+}
+
+// ── History row ───────────────────────────────────────────────────────────────
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 12px;
+  height: 34px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 1px 6px;
+  transition: background 120ms ease;
+
+  &:hover {
+    background: var(--mat-sys-surface-container);
+  }
+}
+
+// ── Method badge ──────────────────────────────────────────────────────────────
+
+.method-badge {
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  min-width: 46px;
+  text-align: center;
+  padding: 2px 4px;
+  border-radius: 3px;
+
+  &[data-method='GET']    { color: var(--method-get);    background: color-mix(in srgb, var(--method-get)    12%, transparent); }
+  &[data-method='POST']   { color: var(--method-post);   background: color-mix(in srgb, var(--method-post)   12%, transparent); }
+  &[data-method='PUT']    { color: var(--method-put);    background: color-mix(in srgb, var(--method-put)    12%, transparent); }
+  &[data-method='PATCH']  { color: var(--method-patch);  background: color-mix(in srgb, var(--method-patch)  12%, transparent); }
+  &[data-method='DELETE'] { color: var(--method-delete); background: color-mix(in srgb, var(--method-delete) 12%, transparent); }
+}
+
+// ── Label ─────────────────────────────────────────────────────────────────────
+
+.item-label {
+  flex: 1;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+// ── Meta: status + time ───────────────────────────────────────────────────────
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+
+  &[data-range='status-2xx'] { color: var(--status-2xx); background: color-mix(in srgb, var(--status-2xx) 12%, transparent); }
+  &[data-range='status-4xx'] { color: var(--status-4xx); background: color-mix(in srgb, var(--status-4xx) 12%, transparent); }
+  &[data-range='status-5xx'] { color: var(--status-5xx); background: color-mix(in srgb, var(--status-5xx) 12%, transparent); }
+  &[data-range='status-other'] { color: var(--status-other); background: color-mix(in srgb, var(--status-other) 12%, transparent); }
+}
+
+.time-ago {
+  font-size: 0.68rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.7;
+  min-width: 20px;
+  text-align: right;
+}

@@ -1,0 +1,74 @@
+<div class="kv-table">
+
+  <!-- Header row -->
+  <div class="kv-header kv-grid">
+    <span class="col-check"></span>
+    <span class="col-key">Key</span>
+    <span class="col-value">Value</span>
+    <span class="col-remove"></span>
+  </div>
+
+  <!-- Data rows -->
+  <div class="kv-body">
+    @for (row of rows(); track $index; let i = $index) {
+      <div class="kv-row kv-grid" [class.row-disabled]="!row.enabled">
+
+        <div class="col-check">
+          <mat-checkbox
+            [checked]="row.enabled"
+            (change)="setEnabled(i, $event.checked)"
+          />
+        </div>
+
+        <div class="col-key">
+          <input
+            class="kv-input"
+            [value]="row.key"
+            placeholder="Key"
+            [disabled]="!row.enabled"
+            (input)="setKey(i, $event)"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="col-value">
+          <input
+            class="kv-input"
+            [value]="row.value"
+            placeholder="Value"
+            [disabled]="!row.enabled"
+            (input)="setValue(i, $event)"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="col-remove">
+          <button
+            mat-icon-button
+            class="remove-btn"
+            (click)="removeRow(i)"
+            matTooltip="Remove row"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+      </div>
+    }
+
+    @if (rows().length === 0) {
+      <div class="kv-empty">No rows — click <strong>Add Row</strong> to begin.</div>
+    }
+  </div>
+
+  <!-- Footer -->
+  <div class="kv-footer">
+    <button mat-button class="add-btn" (click)="addRow()">
+      <mat-icon>add</mat-icon>
+      Add Row
+    </button>
+  </div>
+
+</div>

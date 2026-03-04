@@ -1,0 +1,227 @@
+<div class="editor-root">
+
+  <!-- ── URL bar ──────────────────────────────────────────────────────────── -->
+  <div class="url-bar">
+
+    <mat-form-field appearance="outline" class="method-field" subscriptSizing="dynamic">
+      <mat-select
+        [value]="method()"
+        (valueChange)="method.set($event)"
+        panelClass="method-select-panel"
+      >
+        <!-- Custom trigger shows coloured method badge -->
+        <mat-select-trigger>
+          <span class="method-badge" [attr.data-method]="method()">{{ method() }}</span>
+        </mat-select-trigger>
+
+        @for (m of methods; track m) {
+          <mat-option [value]="m">
+            <span class="method-badge" [attr.data-method]="m">{{ m }}</span>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="url-field" subscriptSizing="dynamic">
+      <input
+        matInput
+        type="url"
+        placeholder="https://api.example.com/endpoint"
+        [value]="url()"
+        (input)="url.set($any($event.target).value)"
+        autocomplete="off"
+        spellcheck="false"
+      />
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      class="send-btn"
+      (click)="sendClicked.emit()"
+      [disabled]="isLoading()"
+    >
+      @if (isLoading()) {
+        <mat-spinner class="send-spinner" diameter="16" />
+      } @else {
+        <mat-icon>send</mat-icon>
+      }
+      {{ isLoading() ? 'Sending…' : 'Send' }}
+    </button>
+
+  </div>
+
+  <!-- ── Detail tabs ───────────────────────────────────────────────────────── -->
+  <mat-tab-group class="editor-tabs" animationDuration="0">
+
+    <!-- Params -->
+    <mat-tab [label]="paramsLabel()">
+      <div class="tab-content">
+        <app-key-value-table
+          [rows]="queryParams()"
+          (rowsChange)="queryParams.set($event)"
+        />
+      </div>
+    </mat-tab>
+
+    <!-- Headers -->
+    <mat-tab [label]="headersLabel()">
+      <div class="tab-content">
+        <app-key-value-table
+          [rows]="headers()"
+          (rowsChange)="headers.set($event)"
+        />
+      </div>
+    </mat-tab>
+
+    <!-- Body -->
+    <mat-tab [label]="bodyLabel()">
+      <div class="tab-content body-tab">
+
+        <div class="body-toolbar">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="body-type-field">
+            <mat-label>Body type</mat-label>
+            <mat-select [value]="bodyType()" (valueChange)="bodyType.set($event)">
+              @for (bt of bodyTypes; track bt.value) {
+                <mat-option [value]="bt.value">{{ bt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="body-editor">
+          @if (bodyType() !== 'none') {
+            <textarea
+              class="body-textarea"
+              [value]="bodyRaw()"
+              [placeholder]="bodyPlaceholder()"
+              (input)="bodyRaw.set($any($event.target).value)"
+              spellcheck="false"
+              autocomplete="off"
+            ></textarea>
+          } @else {
+            <div class="body-none-hint">
+              <mat-icon>block</mat-icon>
+              <span>Select a body type to add a request body.</span>
+            </div>
+          }
+        </div>
+
+      </div>
+    </mat-tab>
+
+    <!-- Auth -->
+    <mat-tab [label]="authLabel()">
+      <div class="tab-content auth-tab">
+
+        <div class="auth-toolbar">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-type-field">
+            <mat-label>Auth type</mat-label>
+            <mat-select [value]="authType()" (valueChange)="authType.set($event)">
+              @for (at of authTypes; track at.value) {
+                <mat-option [value]="at.value">{{ at.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="auth-fields">
+          @switch (authType()) {
+
+            @case ('bearer') {
+              <div class="field-group">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-input">
+                  <mat-label>Bearer Token</mat-label>
+                  <input
+                    matInput
+                    type="password"
+                    placeholder="Enter token…"
+                    [value]="bearerToken()"
+                    (input)="bearerToken.set($any($event.target).value)"
+                    autocomplete="new-password"
+                  />
+                  <mat-icon matSuffix>key</mat-icon>
+                </mat-form-field>
+              </div>
+            }
+
+            @case ('basic') {
+              <div class="field-group">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-input">
+                  <mat-label>Username</mat-label>
+                  <input
+                    matInput
+                    placeholder="Username"
+                    [value]="authUsername()"
+                    (input)="authUsername.set($any($event.target).value)"
+                    autocomplete="username"
+                  />
+                  <mat-icon matSuffix>person</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-input">
+                  <mat-label>Password</mat-label>
+                  <input
+                    matInput
+                    type="password"
+                    placeholder="Password"
+                    [value]="authPassword()"
+                    (input)="authPassword.set($any($event.target).value)"
+                    autocomplete="current-password"
+                  />
+                  <mat-icon matSuffix>lock</mat-icon>
+                </mat-form-field>
+              </div>
+            }
+
+            @case ('apiKey') {
+              <div class="field-group">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-input">
+                  <mat-label>Key name</mat-label>
+                  <input
+                    matInput
+                    placeholder="e.g. X-API-Key"
+                    [value]="apiKeyName()"
+                    (input)="apiKeyName.set($any($event.target).value)"
+                    autocomplete="off"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-input">
+                  <mat-label>Key value</mat-label>
+                  <input
+                    matInput
+                    type="password"
+                    placeholder="Enter API key…"
+                    [value]="apiKeyValue()"
+                    (input)="apiKeyValue.set($any($event.target).value)"
+                    autocomplete="new-password"
+                  />
+                  <mat-icon matSuffix>key</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-input auth-input--narrow">
+                  <mat-label>Add to</mat-label>
+                  <mat-select [value]="apiKeyLocation()" (valueChange)="apiKeyLocation.set($event)">
+                    <mat-option value="header">Header</mat-option>
+                    <mat-option value="query">Query params</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            }
+
+            @default {
+              <div class="auth-none-hint">
+                <mat-icon>lock_open</mat-icon>
+                <span>No authentication. Choose a type above.</span>
+              </div>
+            }
+
+          }
+        </div>
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

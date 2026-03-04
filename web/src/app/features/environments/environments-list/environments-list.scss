@@ -1,0 +1,127 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.list-toolbar {
+  padding: 12px;
+  flex-shrink: 0;
+
+  .new-btn {
+    width: 100%;
+    font-size: 0.875rem;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 32px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.5;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  span {
+    font-size: 0.875rem;
+  }
+}
+
+.env-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 0 12px;
+  height: 40px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 2px 6px;
+  transition: background 150ms ease;
+  position: relative;
+
+  &:hover {
+    background: var(--mat-sys-surface-container);
+  }
+
+  &.active {
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+
+    .env-dot {
+      color: var(--mat-sys-secondary);
+    }
+
+    .env-count {
+      background: var(--mat-sys-secondary);
+      color: var(--mat-sys-on-secondary);
+    }
+  }
+
+  .env-dot {
+    font-size: 8px;
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .env-name {
+    flex: 1;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .env-count {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    background: var(--mat-sys-surface-container-highest);
+    color: var(--mat-sys-on-surface-variant);
+    border-radius: 10px;
+    padding: 1px 6px;
+    flex-shrink: 0;
+
+    &.hidden {
+      visibility: hidden;
+    }
+  }
+
+  .env-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 150ms ease;
+
+    .action-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      &.delete-btn {
+        color: var(--mat-sys-error);
+      }
+    }
+  }
+
+  &:hover .env-actions {
+    opacity: 1;
+  }
+}

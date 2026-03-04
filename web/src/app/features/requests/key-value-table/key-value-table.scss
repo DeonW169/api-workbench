@@ -1,0 +1,157 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.kv-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── Shared grid ──────────────────────────────────────────────────────────────
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: 44px 1fr 1fr 40px;
+  align-items: center;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────────
+
+.kv-header {
+  flex-shrink: 0;
+  padding: 4px 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mat-sys-on-surface-variant);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  .col-key,
+  .col-value {
+    padding: 0 8px;
+  }
+}
+
+// ── Body ─────────────────────────────────────────────────────────────────────
+
+.kv-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.kv-row {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  transition: background 0.1s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+  }
+
+  &.row-disabled {
+    .col-key,
+    .col-value {
+      opacity: 0.4;
+    }
+  }
+}
+
+.col-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 8px;
+}
+
+.col-key,
+.col-value {
+  padding: 0;
+  min-width: 0;
+}
+
+.col-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .remove-btn {
+    opacity: 0;
+    transition: opacity 0.15s;
+    width: 28px;
+    height: 28px;
+
+    mat-icon {
+      font-size: 14px;
+      height: 14px;
+      width: 14px;
+    }
+  }
+
+  .kv-row:hover & .remove-btn {
+    opacity: 1;
+  }
+}
+
+// ── Input cells ───────────────────────────────────────────────────────────────
+
+.kv-input {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 9px 10px;
+  outline: none;
+
+  &::placeholder {
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.5;
+    font-style: italic;
+  }
+
+  &:focus {
+    background: color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+.kv-empty {
+  padding: 20px 16px;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.6;
+  text-align: center;
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+
+.kv-footer {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.add-btn {
+  font-size: 0.8rem;
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+  }
+}

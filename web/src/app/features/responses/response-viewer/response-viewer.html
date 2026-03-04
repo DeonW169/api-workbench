@@ -1,0 +1,206 @@
+<div class="viewer-root">
+
+  <!-- ── Status bar ────────────────────────────────────────────────────────── -->
+  <div class="viewer-header">
+    <span class="viewer-label">Response</span>
+
+    @if (isLoading()) {
+      <div class="loading-row">
+        <mat-spinner diameter="18" />
+        <span class="loading-text">Sending…</span>
+      </div>
+    } @else if (errorMessage(); as err) {
+      <span class="error-hint">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        {{ err }}
+      </span>
+    } @else if (response(); as r) {
+      <div class="status-row">
+        <span class="status-badge" [attr.data-range]="statusRange()">
+          {{ r.status }}
+        </span>
+        <span class="status-text">{{ r.statusText }}</span>
+        <span class="meta-pill">
+          <mat-icon class="meta-icon">schedule</mat-icon>
+          {{ durationLabel() }}
+        </span>
+        <span class="meta-pill">
+          <mat-icon class="meta-icon">data_usage</mat-icon>
+          {{ sizeLabel() }}
+        </span>
+      </div>
+    } @else {
+      <span class="idle-hint">Send a request to see the response</span>
+    }
+  </div>
+
+  <!-- ── Tabs ──────────────────────────────────────────────────────────────── -->
+  <mat-tab-group class="viewer-tabs" animationDuration="0">
+
+    <!-- Body -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Body
+        @if (response() && !hasBody()) {
+          <span class="tab-badge">empty</span>
+        }
+      </ng-template>
+
+      <div class="tab-content">
+
+        @if (isLoading()) {
+          <div class="pane-loading">
+            <mat-spinner diameter="36" />
+          </div>
+
+        } @else if (errorMessage(); as err) {
+          <div class="pane-error">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ err }}</span>
+          </div>
+
+        } @else if (!response()) {
+          <div class="pane-idle">
+            <mat-icon>inbox</mat-icon>
+            <span>No response yet</span>
+          </div>
+
+        } @else if (!hasBody()) {
+          <div class="pane-idle">
+            <mat-icon>do_not_disturb_on</mat-icon>
+            <span>No body returned</span>
+          </div>
+
+        } @else {
+          <!-- Copy button -->
+          <div class="pane-toolbar">
+            <span class="content-type-label">{{ response()!.contentType }}</span>
+            <button
+              mat-icon-button
+              class="copy-btn"
+              (click)="copyBody()"
+              [matTooltip]="copiedBody() ? 'Copied!' : 'Copy body'"
+            >
+              <mat-icon>{{ copiedBody() ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+
+          <!-- Pretty body — JSON gets syntax highlighting, everything else is plain -->
+          @if (highlightedBody(); as html) {
+            <pre class="body-pre" [innerHTML]="html"></pre>
+          } @else {
+            <pre class="body-pre">{{ prettyBody() }}</pre>
+          }
+        }
+
+      </div>
+    </mat-tab>
+
+    <!-- Headers -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Headers
+        @if (headersCount() > 0) {
+          <span class="tab-count">{{ headersCount() }}</span>
+        }
+      </ng-template>
+
+      <div class="tab-content">
+
+        @if (isLoading()) {
+          <div class="pane-loading"><mat-spinner diameter="36" /></div>
+
+        } @else if (errorMessage()) {
+          <div class="pane-idle">
+            <mat-icon>list_alt</mat-icon>
+            <span>No response yet</span>
+          </div>
+
+        } @else if (!response()) {
+          <div class="pane-idle">
+            <mat-icon>list_alt</mat-icon>
+            <span>No response yet</span>
+          </div>
+
+        } @else if (headersCount() === 0) {
+          <div class="pane-idle">
+            <mat-icon>list_alt</mat-icon>
+            <span>No headers returned</span>
+          </div>
+
+        } @else {
+          <div class="pane-toolbar">
+            <span class="content-type-label">{{ headersCount() }} header{{ headersCount() === 1 ? '' : 's' }}</span>
+            <button
+              mat-icon-button
+              class="copy-btn"
+              (click)="copyHeaders()"
+              [matTooltip]="copiedHeaders() ? 'Copied!' : 'Copy headers'"
+            >
+              <mat-icon>{{ copiedHeaders() ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+
+          <div class="headers-table">
+            <div class="headers-thead headers-grid">
+              <span>Header</span>
+              <span>Value</span>
+            </div>
+            @for (h of headersArray(); track h.key) {
+              <div class="headers-row headers-grid">
+                <span class="header-key">{{ h.key }}</span>
+                <span class="header-value">{{ h.value }}</span>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    </mat-tab>
+
+    <!-- Raw -->
+    <mat-tab label="Raw">
+      <div class="tab-content">
+
+        @if (isLoading()) {
+          <div class="pane-loading"><mat-spinner diameter="36" /></div>
+
+        } @else if (errorMessage()) {
+          <div class="pane-idle">
+            <mat-icon>code</mat-icon>
+            <span>No response yet</span>
+          </div>
+
+        } @else if (!response()) {
+          <div class="pane-idle">
+            <mat-icon>code</mat-icon>
+            <span>No response yet</span>
+          </div>
+
+        } @else if (!hasBody()) {
+          <div class="pane-idle">
+            <mat-icon>do_not_disturb_on</mat-icon>
+            <span>No body returned</span>
+          </div>
+
+        } @else {
+          <div class="pane-toolbar">
+            <span class="content-type-label">Raw output</span>
+            <button
+              mat-icon-button
+              class="copy-btn"
+              (click)="copyRaw()"
+              [matTooltip]="copiedRaw() ? 'Copied!' : 'Copy raw'"
+            >
+              <mat-icon>{{ copiedRaw() ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+          <pre class="body-pre">{{ rawBody() }}</pre>
+        }
+
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

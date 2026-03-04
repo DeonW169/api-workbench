@@ -1,0 +1,230 @@
+// ── Method colour tokens ──────────────────────────────────────────────────────
+// Defined on :host so they cascade into global panel overlays via panelClass.
+:host {
+  --method-get:    #4db6ac;
+  --method-post:   #81c784;
+  --method-put:    #64b5f6;
+  --method-patch:  #ffb74d;
+  --method-delete: #ef9a9a;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── Root ─────────────────────────────────────────────────────────────────────
+
+.editor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── URL bar ───────────────────────────────────────────────────────────────────
+
+.url-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  flex-shrink: 0;
+}
+
+// Method dropdown
+.method-field {
+  width: 118px;
+  flex-shrink: 0;
+}
+
+// Coloured method text — used inside mat-select-trigger and mat-option
+.method-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+
+  &[data-method='GET']    { color: var(--method-get); }
+  &[data-method='POST']   { color: var(--method-post); }
+  &[data-method='PUT']    { color: var(--method-put); }
+  &[data-method='PATCH']  { color: var(--method-patch); }
+  &[data-method='DELETE'] { color: var(--method-delete); }
+}
+
+// URL input
+.url-field {
+  flex: 1;
+  min-width: 0;
+}
+
+// Send button
+.send-btn {
+  flex-shrink: 0;
+  gap: 4px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  .send-spinner {
+    display: inline-block;
+    flex-shrink: 0;
+  }
+}
+
+// ── Tab group ─────────────────────────────────────────────────────────────────
+
+.editor-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+
+  // Allow tab body to fill remaining height
+  ::ng-deep .mat-mdc-tab-body-wrapper {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+// ── Shared tab content container ─────────────────────────────────────────────
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── Body tab ─────────────────────────────────────────────────────────────────
+
+.body-tab {
+  .body-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    flex-shrink: 0;
+  }
+
+  .body-type-field {
+    width: 160px;
+  }
+
+  .body-editor {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.body-textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.825rem;
+  line-height: 1.65;
+  padding: 12px 16px;
+  tab-size: 2;
+
+  &::placeholder {
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.5;
+    font-style: italic;
+  }
+}
+
+.body-none-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.45;
+  font-size: 0.875rem;
+
+  mat-icon {
+    font-size: 28px;
+    height: 28px;
+    width: 28px;
+  }
+}
+
+// ── Auth tab ──────────────────────────────────────────────────────────────────
+
+.auth-tab {
+  .auth-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    flex-shrink: 0;
+  }
+
+  .auth-type-field {
+    width: 180px;
+  }
+
+  .auth-fields {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+// Vertical stack of form fields
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 16px;
+  max-width: 480px;
+}
+
+.auth-input {
+  width: 100%;
+
+  &--narrow {
+    width: 200px;
+  }
+}
+
+.auth-none-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.45;
+  font-size: 0.875rem;
+
+  mat-icon {
+    font-size: 28px;
+    height: 28px;
+    width: 28px;
+  }
+}
