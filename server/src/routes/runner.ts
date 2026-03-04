@@ -108,14 +108,30 @@ export async function registerRunnerRoutes(
 
         const responseHeaders = Object.fromEntries(response.headers.entries());
         const contentType = response.headers.get('content-type') ?? '';
-        const text = await response.text();
 
-        let parsedBody: unknown = text;
-        if (contentType.includes('application/json')) {
-            try {
-                parsedBody = JSON.parse(text);
-            } catch {
-                parsedBody = text;
+        // ── Response body ──────────────────────────────────────────────────────
+        // Images are returned as a base64 data URL so the frontend can render
+        // them directly without any additional fetch.  All other content is read
+        // as text; JSON responses are additionally parsed into an object so the
+        // frontend can render a collapsible tree.
+        let parsedBody: unknown;
+        let size: number;
+
+        if (contentType.startsWith('image/')) {
+            const buffer = await response.arrayBuffer();
+            const base64 = Buffer.from(buffer).toString('base64');
+            parsedBody = `data:${contentType};base64,${base64}`;
+            size = buffer.byteLength;
+        } else {
+            const text = await response.text();
+            parsedBody = text;
+            size = text.length;
+            if (contentType.includes('application/json')) {
+                try {
+                    parsedBody = JSON.parse(text);
+                } catch {
+                    parsedBody = text;
+                }
             }
         }
 
@@ -127,7 +143,7 @@ export async function registerRunnerRoutes(
             headers: responseHeaders,
             body: parsedBody,
             contentType,
-            size: text.length,
+            size,
         });
     });
 }

@@ -72,22 +72,88 @@
           </div>
 
         } @else {
-          <!-- Copy button -->
+
+          <!-- Toolbar -->
           <div class="pane-toolbar">
             <span class="content-type-label">{{ response()!.contentType }}</span>
-            <button
-              mat-icon-button
-              class="copy-btn"
-              (click)="copyBody()"
-              [matTooltip]="copiedBody() ? 'Copied!' : 'Copy body'"
-            >
-              <mat-icon>{{ copiedBody() ? 'check' : 'content_copy' }}</mat-icon>
-            </button>
+
+            <div class="toolbar-actions">
+              @if (isJson() && !isImage()) {
+                <!-- Search / filter -->
+                <div class="search-box">
+                  <mat-icon class="search-icon">search</mat-icon>
+                  <input
+                    class="search-input"
+                    placeholder="Filter…"
+                    [value]="bodySearch()"
+                    (input)="bodySearch.set($any($event.target).value)"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                  @if (bodySearch()) {
+                    <button
+                      mat-icon-button
+                      class="icon-btn"
+                      (click)="bodySearch.set('')"
+                      matTooltip="Clear filter"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  }
+                </div>
+
+                <!-- Expand / Collapse all -->
+                <button mat-icon-button class="icon-btn" (click)="expandAll()" matTooltip="Expand all">
+                  <mat-icon>unfold_more</mat-icon>
+                </button>
+                <button mat-icon-button class="icon-btn" (click)="collapseAll()" matTooltip="Collapse all">
+                  <mat-icon>unfold_less</mat-icon>
+                </button>
+              }
+
+              <!-- Download -->
+              <button mat-icon-button class="icon-btn" (click)="downloadResponse()" matTooltip="Download">
+                <mat-icon>download</mat-icon>
+              </button>
+
+              <!-- Copy -->
+              <button
+                mat-icon-button
+                class="icon-btn"
+                (click)="copyBody()"
+                [matTooltip]="copiedBody() ? 'Copied!' : 'Copy body'"
+              >
+                <mat-icon>{{ copiedBody() ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+            </div>
           </div>
 
-          <!-- Pretty body — JSON gets syntax highlighting, everything else is plain -->
-          @if (highlightedBody(); as html) {
-            <pre class="body-pre" [innerHTML]="html"></pre>
+          <!-- Body content -->
+          @if (isImage() && imageSrc()) {
+            <div class="image-pane">
+              <div class="image-frame">
+                <img class="image-preview" [src]="imageSrc()" [alt]="response()!.contentType" />
+              </div>
+              <div class="image-meta">
+                <span class="image-meta-item">
+                  <mat-icon class="image-meta-icon">image</mat-icon>
+                  {{ response()!.contentType }}
+                </span>
+                <span class="image-meta-item">
+                  <mat-icon class="image-meta-icon">data_usage</mat-icon>
+                  {{ sizeLabel() }}
+                </span>
+              </div>
+            </div>
+          } @else if (isJson() && parsedBody() !== null) {
+            <div class="tree-viewport">
+              <app-json-tree
+                [value]="parsedBody()"
+                [searchTerm]="bodySearch()"
+                [expandGen]="expandAllGen()"
+                [collapseGen]="collapseAllGen()"
+              />
+            </div>
           } @else {
             <pre class="body-pre">{{ prettyBody() }}</pre>
           }

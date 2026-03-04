@@ -190,9 +190,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 12px 4px 16px;
+  padding: 4px 6px 4px 16px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
   flex-shrink: 0;
+  gap: 8px;
 }
 
 .content-type-label {
@@ -203,8 +204,37 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
+// ── Body toolbar — right-side action cluster ──────────────────────────────────
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+// Icon button used in body toolbar (download, copy, expand/collapse, clear)
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+    transition: color 0.2s;
+  }
+
+  &:hover mat-icon { color: var(--mat-sys-primary); }
+}
+
+// Copy button used in Headers / Raw tab toolbars
 .copy-btn {
   width: 28px;
   height: 28px;
@@ -218,12 +248,46 @@
     transition: color 0.2s;
   }
 
-  &:hover mat-icon {
-    color: var(--mat-sys-primary);
+  &:hover mat-icon { color: var(--mat-sys-primary); }
+}
+
+// ── Inline search box ─────────────────────────────────────────────────────────
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 7%, transparent);
+  border-radius: 4px;
+  padding: 0 2px 0 7px;
+  height: 26px;
+}
+
+.search-icon {
+  font-size: 13px;
+  height: 13px;
+  width: 13px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.search-input {
+  background: none;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface);
+  width: 130px;
+
+  &::placeholder {
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.45;
   }
 }
 
-// ── Pre / code block ──────────────────────────────────────────────────────────
+// ── Pre / code block (raw text bodies) ───────────────────────────────────────
 
 .body-pre {
   flex: 1;
@@ -238,20 +302,74 @@
   overflow-x: hidden;
   color: var(--mat-sys-on-surface);
   background: transparent;
+}
 
-  // JSON syntax highlighting — applied to innerHTML spans
-  ::ng-deep {
-    // Key names  (e.g. "name":)
-    .jk   { color: #7ec8e3; }
-    // String values
-    .js   { color: #98c379; }
-    // Numbers
-    .jnum { color: #d19a66; }
-    // Booleans (true / false)
-    .jb   { color: #c678dd; }
-    // Null
-    .jn   { color: #7f848e; }
-  }
+// ── JSON tree viewport ────────────────────────────────────────────────────────
+
+.tree-viewport {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 10px 16px 16px;
+}
+
+// ── Image preview ─────────────────────────────────────────────────────────────
+
+.image-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 16px;
+  overflow: auto;
+}
+
+.image-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  overflow: hidden;
+  background: repeating-conic-gradient(
+    color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent) 0% 25%,
+    transparent 0% 50%
+  ) 0 0 / 16px 16px;
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--mat-sys-shadow) 12%, transparent);
+  max-width: 100%;
+}
+
+.image-preview {
+  display: block;
+  max-width: min(100%, 800px);
+  max-height: 60vh;
+  object-fit: contain;
+}
+
+.image-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.image-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-family: 'Roboto Mono', monospace;
+  opacity: 0.7;
+}
+
+.image-meta-icon {
+  font-size: 14px;
+  height: 14px;
+  width: 14px;
+  opacity: 0.8;
 }
 
 // ── Loading / error panes ─────────────────────────────────────────────────────

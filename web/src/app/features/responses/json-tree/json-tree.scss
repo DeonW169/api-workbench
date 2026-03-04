@@ -1,0 +1,77 @@
+:host {
+  display: block;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+// ── Row layouts ───────────────────────────────────────────────────────────────
+
+.node-row {
+  display: flex;
+  align-items: baseline;
+  min-height: 1.4em;
+  padding: 0 4px;
+  border-radius: 3px;
+  gap: 1px;
+}
+
+.container-row {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+  }
+}
+
+.leaf-row,
+.close-row {
+  cursor: default;
+}
+
+// ── Toggle icon / spacer ─────────────────────────────────────────────────────
+
+.toggle-icon {
+  font-size: 15px;
+  height: 15px;
+  width: 15px;
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.55;
+}
+
+.toggle-spacer {
+  display: inline-block;
+  width: 15px;
+  flex-shrink: 0;
+}
+
+// ── Children indentation ──────────────────────────────────────────────────────
+
+.children {
+  padding-left: 18px;
+  margin-left: 7px;
+  border-left: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 40%, transparent);
+}
+
+// ── Token colours ─────────────────────────────────────────────────────────────
+
+.jk        { color: #7ec8e3; }
+.arr-idx   { color: var(--mat-sys-on-surface-variant); opacity: 0.55; }
+.jv-string  { color: #98c379; }
+.jv-number  { color: #d19a66; }
+.jv-boolean { color: #c678dd; }
+.jv-null    { color: #7f848e; font-style: italic; }
+
+.bracket { color: var(--mat-sys-on-surface-variant); opacity: 0.7; }
+.punct   { color: var(--mat-sys-on-surface-variant); opacity: 0.4; }
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.45;
+  font-style: italic;
+  margin: 0 3px;
+}

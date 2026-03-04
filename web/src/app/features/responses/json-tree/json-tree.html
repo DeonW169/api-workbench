@@ -1,0 +1,77 @@
+@if (matchesSearch()) {
+
+  @if (isContainer()) {
+
+    <!-- ── Container node (object or array) ──────────────────────────────── -->
+    <div
+      class="node-row container-row"
+      role="button"
+      [attr.aria-expanded]="effectiveOpen()"
+      (click)="toggle()"
+    >
+      <mat-icon class="toggle-icon">
+        {{ effectiveOpen() ? 'expand_more' : 'chevron_right' }}
+      </mat-icon>
+
+      @if (nodeKey() !== null) {
+        @if (isArrayItem()) {
+          <span class="arr-idx">{{ nodeKey() }}</span>
+        } @else {
+          <span class="jk">"{{ nodeKey() }}"</span>
+        }
+        <span class="punct">:&nbsp;</span>
+      }
+
+      <span class="bracket">{{ openBracket() }}</span>
+
+      @if (!effectiveOpen()) {
+        <span class="hint">
+          {{ childCount() }}&thinsp;{{ type() === 'array' ? 'item' : 'key' }}{{ childCount() === 1 ? '' : 's' }}
+        </span>
+        <span class="bracket">{{ closeBracket() }}</span>
+        @if (!isLastChild()) {<span class="punct">,</span>}
+      }
+    </div>
+
+    @if (effectiveOpen()) {
+      <div class="children">
+        @for (entry of entries(); track entry.key; let last = $last) {
+          <app-json-tree
+            [nodeKey]="entry.key"
+            [value]="entry.val"
+            [isLastChild]="last"
+            [isArrayItem]="type() === 'array'"
+            [searchTerm]="searchTerm()"
+            [expandGen]="expandGen()"
+            [collapseGen]="collapseGen()"
+          />
+        }
+      </div>
+
+      <div class="node-row close-row">
+        <span class="toggle-spacer"></span>
+        <span class="bracket">{{ closeBracket() }}</span>
+        @if (!isLastChild()) {<span class="punct">,</span>}
+      </div>
+    }
+
+  } @else {
+
+    <!-- ── Leaf node ──────────────────────────────────────────────────────── -->
+    <div class="node-row leaf-row">
+      <span class="toggle-spacer"></span>
+      @if (nodeKey() !== null) {
+        @if (isArrayItem()) {
+          <span class="arr-idx">{{ nodeKey() }}</span>
+        } @else {
+          <span class="jk">"{{ nodeKey() }}"</span>
+        }
+        <span class="punct">:&nbsp;</span>
+      }
+      <span [class]="valueClass()">{{ displayValue() }}</span>
+      @if (!isLastChild()) {<span class="punct">,</span>}
+    </div>
+
+  }
+
+}
