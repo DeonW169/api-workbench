@@ -95,6 +95,7 @@ export class RequestsService {
       headers: [],
       bodyType: 'none',
       bodyRaw: '',
+      bodyFormFields: [],
       auth: { type: 'none' },
       collectionId: collectionId ?? undefined,
       folderId: folderId ?? undefined,

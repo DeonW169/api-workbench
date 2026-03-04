@@ -172,6 +172,202 @@
   }
 }
 
+// ── Form fields table (form-data & x-www-form-urlencoded) ────────────────────
+
+.form-fields-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// Grid column templates
+.ff-grid {
+  display: grid;
+  align-items: center;
+
+  &--urlenc {
+    grid-template-columns: 36px 1fr 1fr 32px;
+  }
+
+  &--multipart {
+    grid-template-columns: 36px 1fr 60px 1fr 32px;
+  }
+}
+
+.ff-header {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+
+  span { padding: 0 8px; }
+}
+
+.ff-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ff-row {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  min-height: 36px;
+
+  &--disabled { opacity: 0.42; }
+  &:last-child { border-bottom: none; }
+}
+
+.ff-col-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Compact checkbox
+  ::ng-deep .mdc-checkbox { padding: 0; }
+}
+
+.ff-col-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ff-col-type {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+}
+
+.ff-input {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  font-family: inherit;
+
+  &::placeholder {
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.45;
+  }
+
+  &:disabled { cursor: not-allowed; }
+}
+
+.ff-type-btn {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-width: 0;
+  padding: 0 6px;
+  height: 22px;
+  line-height: 22px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  color: var(--mat-sys-primary);
+
+  &--file {
+    background: color-mix(in srgb, #ff9800 12%, transparent);
+    color: #ff9800;
+  }
+}
+
+// File-type row value cell
+.ff-file-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  min-height: 36px;
+  overflow: hidden;
+}
+
+// Visually hidden but functional file input — clicking the label opens the picker
+.ff-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ff-filename {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface);
+
+  &--empty {
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.45;
+    font-style: italic;
+  }
+}
+
+.ff-browse-btn {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--mat-sys-outline);
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+
+  .ff-file-label:hover & {
+    border-color: var(--mat-sys-primary);
+    color: var(--mat-sys-primary);
+  }
+}
+
+.ff-remove-btn {
+  width: 28px !important;
+  height: 28px !important;
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+  }
+}
+
+.ff-empty {
+  padding: 16px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.ff-footer {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  flex-shrink: 0;
+}
+
+.ff-add-btn {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8rem;
+
+  mat-icon {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+  }
+}
+
 // ── Auth tab ──────────────────────────────────────────────────────────────────
 
 .auth-tab {

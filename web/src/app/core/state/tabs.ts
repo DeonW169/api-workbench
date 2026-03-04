@@ -146,6 +146,7 @@ function createBlankTab(): WorkspaceTab {
     headers: [],
     bodyType: 'none',
     bodyRaw: '',
+    bodyFormFields: [],
     auth: { type: 'none' },
     createdAt: now,
     updatedAt: now,
@@ -192,6 +193,7 @@ function fingerprint(req: ApiRequest): string {
     headers: req.headers,
     bodyType: req.bodyType,
     bodyRaw: req.bodyRaw,
+    bodyFormFields: req.bodyFormFields ?? [],
     auth: req.auth,
   });
 }

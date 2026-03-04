@@ -6,12 +6,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { KeyValueTable } from '../key-value-table/key-value-table';
 import {
   ApiRequest,
   AuthConfig,
   AuthType,
   BodyType,
+  FormField,
+  FormFieldType,
   HttpMethod,
   KeyValueItem,
 } from '../../../shared/models/api-request.model';
@@ -36,6 +40,8 @@ interface AuthTypeOption {
     MatIconModule,
     MatTabsModule,
     MatProgressSpinnerModule,
+    MatCheckboxModule,
+    MatTooltipModule,
     KeyValueTable,
   ],
   templateUrl: './request-editor.html',
@@ -50,6 +56,8 @@ export class RequestEditor {
   readonly headers = signal<KeyValueItem[]>([]);
   readonly bodyType = signal<BodyType>('none');
   readonly bodyRaw = signal('');
+  /** Rows for form-data and x-www-form-urlencoded body types. Shared between both. */
+  readonly bodyFormFields = signal<FormField[]>([]);
 
   // Auth sub-state — kept flat for ergonomic binding
   readonly authType = signal<AuthType>('none');
@@ -65,16 +73,18 @@ export class RequestEditor {
   readonly methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
   readonly bodyTypes: BodyTypeOption[] = [
-    { value: 'none', label: 'None' },
-    { value: 'json', label: 'JSON' },
-    { value: 'text', label: 'Plain Text' },
+    { value: 'none',                  label: 'None' },
+    { value: 'json',                  label: 'JSON' },
+    { value: 'text',                  label: 'Plain Text' },
+    { value: 'form-data',             label: 'Form Data' },
+    { value: 'x-www-form-urlencoded', label: 'URL-Encoded' },
   ];
 
   readonly authTypes: AuthTypeOption[] = [
-    { value: 'none', label: 'No Auth' },
-    { value: 'bearer', label: 'Bearer Token' },
-    { value: 'basic', label: 'Basic Auth' },
-    { value: 'apiKey', label: 'API Key' },
+    { value: 'none',    label: 'No Auth' },
+    { value: 'bearer',  label: 'Bearer Token' },
+    { value: 'basic',   label: 'Basic Auth' },
+    { value: 'apiKey',  label: 'API Key' },
   ];
 
   // ── Computed tab labels ───────────────────────────────────────────────────
@@ -141,6 +151,7 @@ export class RequestEditor {
     headers: this.headers(),
     bodyType: this.bodyType(),
     bodyRaw: this.bodyRaw(),
+    bodyFormFields: this.bodyFormFields(),
     auth: this.authConfig(),
     createdAt: this._createdAt,
     updatedAt: new Date().toISOString(),
@@ -183,6 +194,8 @@ export class RequestEditor {
         this.headers.set([...req.headers]);
         this.bodyType.set(req.bodyType);
         this.bodyRaw.set(req.bodyRaw);
+        // ?? [] guards against existing saved requests that predate this field
+        this.bodyFormFields.set([...(req.bodyFormFields ?? [])]);
         this.authType.set(req.auth.type);
         this.bearerToken.set(req.auth.bearerToken ?? '');
         this.authUsername.set(req.auth.username ?? '');
@@ -197,5 +210,78 @@ export class RequestEditor {
     effect(() => {
       this.requestChange.emit(this.requestSnapshot());
     });
+  }
+
+  // ── Form-field mutations ──────────────────────────────────────────────────
+
+  addFormField(): void {
+    this.bodyFormFields.update(fields => [
+      ...fields,
+      { key: '', value: '', enabled: true, type: 'text' },
+    ]);
+  }
+
+  removeFormField(index: number): void {
+    this.bodyFormFields.update(fields => fields.filter((_, i) => i !== index));
+  }
+
+  setFormFieldEnabled(index: number, enabled: boolean): void {
+    this.bodyFormFields.update(fields =>
+      fields.map((f, i) => (i === index ? { ...f, enabled } : f)),
+    );
+  }
+
+  setFormFieldKey(index: number, event: Event): void {
+    const key = (event.target as HTMLInputElement).value;
+    this.bodyFormFields.update(fields =>
+      fields.map((f, i) => (i === index ? { ...f, key } : f)),
+    );
+  }
+
+  setFormFieldValue(index: number, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.bodyFormFields.update(fields =>
+      fields.map((f, i) => (i === index ? { ...f, value } : f)),
+    );
+  }
+
+  /**
+   * Toggle a row's type between 'text' and 'file' (form-data only).
+   * Clears value and fileContent on type change since the data format differs.
+   */
+  toggleFormFieldType(index: number): void {
+    this.bodyFormFields.update(fields =>
+      fields.map((f, i) => {
+        if (i !== index) return f;
+        const type: FormFieldType = f.type === 'text' ? 'file' : 'text';
+        return { ...f, type, value: '', fileContent: undefined };
+      }),
+    );
+  }
+
+  /**
+   * Read the selected file as base64 and store both the filename (value)
+   * and the encoded content (fileContent) so the backend proxy can reconstruct
+   * the Blob for multipart upload.
+   */
+  onFileSelected(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    // Reset input immediately so the same file can be re-selected after clearing
+    input.value = '';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      // result is a data URL: "data:<mime>;base64,<content>"
+      const dataUrl = reader.result as string;
+      const fileContent = dataUrl.split(',')[1] ?? '';
+      this.bodyFormFields.update(fields =>
+        fields.map((f, i) =>
+          i === index ? { ...f, value: file.name, fileContent } : f,
+        ),
+      );
+    };
+    reader.readAsDataURL(file);
   }
 }

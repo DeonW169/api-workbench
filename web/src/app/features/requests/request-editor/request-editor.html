@@ -89,20 +89,202 @@
         </div>
 
         <div class="body-editor">
-          @if (bodyType() !== 'none') {
-            <textarea
-              class="body-textarea"
-              [value]="bodyRaw()"
-              [placeholder]="bodyPlaceholder()"
-              (input)="bodyRaw.set($any($event.target).value)"
-              spellcheck="false"
-              autocomplete="off"
-            ></textarea>
-          } @else {
-            <div class="body-none-hint">
-              <mat-icon>block</mat-icon>
-              <span>Select a body type to add a request body.</span>
-            </div>
+          @switch (bodyType()) {
+
+            <!-- ── Raw text bodies ─────────────────────────────────────── -->
+            @case ('json') {
+              <textarea
+                class="body-textarea"
+                [value]="bodyRaw()"
+                [placeholder]="bodyPlaceholder()"
+                (input)="bodyRaw.set($any($event.target).value)"
+                spellcheck="false"
+                autocomplete="off"
+              ></textarea>
+            }
+
+            @case ('text') {
+              <textarea
+                class="body-textarea"
+                [value]="bodyRaw()"
+                [placeholder]="bodyPlaceholder()"
+                (input)="bodyRaw.set($any($event.target).value)"
+                spellcheck="false"
+                autocomplete="off"
+              ></textarea>
+            }
+
+            <!-- ── URL-encoded ─────────────────────────────────────────── -->
+            @case ('x-www-form-urlencoded') {
+              <div class="form-fields-table">
+                <div class="ff-header ff-grid ff-grid--urlenc">
+                  <span class="ff-col-check"></span>
+                  <span class="ff-col-key">Key</span>
+                  <span class="ff-col-value">Value</span>
+                  <span class="ff-col-remove"></span>
+                </div>
+
+                <div class="ff-body">
+                  @for (field of bodyFormFields(); track $index; let i = $index) {
+                    <div class="ff-row ff-grid ff-grid--urlenc" [class.ff-row--disabled]="!field.enabled">
+                      <div class="ff-col-check">
+                        <mat-checkbox
+                          [checked]="field.enabled"
+                          (change)="setFormFieldEnabled(i, $event.checked)"
+                        />
+                      </div>
+                      <div class="ff-col-key">
+                        <input
+                          class="ff-input"
+                          placeholder="Key"
+                          [value]="field.key"
+                          [disabled]="!field.enabled"
+                          (input)="setFormFieldKey(i, $event)"
+                          autocomplete="off"
+                          spellcheck="false"
+                        />
+                      </div>
+                      <div class="ff-col-value">
+                        <input
+                          class="ff-input"
+                          placeholder="Value"
+                          [value]="field.value"
+                          [disabled]="!field.enabled"
+                          (input)="setFormFieldValue(i, $event)"
+                          autocomplete="off"
+                          spellcheck="false"
+                        />
+                      </div>
+                      <div class="ff-col-remove">
+                        <button
+                          mat-icon-button
+                          class="ff-remove-btn"
+                          (click)="removeFormField(i)"
+                          matTooltip="Remove row"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (bodyFormFields().length === 0) {
+                    <div class="ff-empty">No fields — click <strong>Add Field</strong> to begin.</div>
+                  }
+                </div>
+
+                <div class="ff-footer">
+                  <button mat-button class="ff-add-btn" (click)="addFormField()">
+                    <mat-icon>add</mat-icon>
+                    Add Field
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- ── Multipart form-data ─────────────────────────────────── -->
+            @case ('form-data') {
+              <div class="form-fields-table">
+                <div class="ff-header ff-grid ff-grid--multipart">
+                  <span class="ff-col-check"></span>
+                  <span class="ff-col-key">Key</span>
+                  <span class="ff-col-type">Type</span>
+                  <span class="ff-col-value">Value</span>
+                  <span class="ff-col-remove"></span>
+                </div>
+
+                <div class="ff-body">
+                  @for (field of bodyFormFields(); track $index; let i = $index) {
+                    <div class="ff-row ff-grid ff-grid--multipart" [class.ff-row--disabled]="!field.enabled">
+                      <div class="ff-col-check">
+                        <mat-checkbox
+                          [checked]="field.enabled"
+                          (change)="setFormFieldEnabled(i, $event.checked)"
+                        />
+                      </div>
+                      <div class="ff-col-key">
+                        <input
+                          class="ff-input"
+                          placeholder="Key"
+                          [value]="field.key"
+                          [disabled]="!field.enabled"
+                          (input)="setFormFieldKey(i, $event)"
+                          autocomplete="off"
+                          spellcheck="false"
+                        />
+                      </div>
+                      <div class="ff-col-type">
+                        <button
+                          mat-button
+                          class="ff-type-btn"
+                          [class.ff-type-btn--file]="field.type === 'file'"
+                          (click)="toggleFormFieldType(i)"
+                          [disabled]="!field.enabled"
+                          matTooltip="Toggle text / file"
+                        >{{ field.type }}</button>
+                      </div>
+                      <div class="ff-col-value">
+                        @if (field.type === 'file') {
+                          <label class="ff-file-label">
+                            <input
+                              type="file"
+                              class="ff-file-input"
+                              [disabled]="!field.enabled"
+                              (change)="onFileSelected(i, $event)"
+                            />
+                            <span
+                              class="ff-filename"
+                              [class.ff-filename--empty]="!field.value"
+                            >{{ field.value || 'No file chosen' }}</span>
+                            <span class="ff-browse-btn">Browse</span>
+                          </label>
+                        } @else {
+                          <input
+                            class="ff-input"
+                            placeholder="Value"
+                            [value]="field.value"
+                            [disabled]="!field.enabled"
+                            (input)="setFormFieldValue(i, $event)"
+                            autocomplete="off"
+                            spellcheck="false"
+                          />
+                        }
+                      </div>
+                      <div class="ff-col-remove">
+                        <button
+                          mat-icon-button
+                          class="ff-remove-btn"
+                          (click)="removeFormField(i)"
+                          matTooltip="Remove row"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (bodyFormFields().length === 0) {
+                    <div class="ff-empty">No fields — click <strong>Add Field</strong> to begin.</div>
+                  }
+                </div>
+
+                <div class="ff-footer">
+                  <button mat-button class="ff-add-btn" (click)="addFormField()">
+                    <mat-icon>add</mat-icon>
+                    Add Field
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- ── None ───────────────────────────────────────────────── -->
+            @default {
+              <div class="body-none-hint">
+                <mat-icon>block</mat-icon>
+                <span>Select a body type to add a request body.</span>
+              </div>
+            }
+
           }
         </div>
 

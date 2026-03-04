@@ -17,6 +17,7 @@ export class RunnerApiService {
             headers: request.headers,
             bodyType: request.bodyType,
             bodyRaw: request.bodyRaw,
+            bodyFormFields: request.bodyFormFields,
         });
     }
 

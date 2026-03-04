@@ -58,18 +58,22 @@ export function mergeVars(...sources: VariableMap[]): VariableMap {
  *
  * Fields resolved:
  *   - url
- *   - queryParams[].value  (keys are kept literal)
- *   - headers[].value      (keys are kept literal)
+ *   - queryParams[].value      (keys are kept literal)
+ *   - headers[].value          (keys are kept literal)
  *   - bodyRaw
+ *   - bodyFormFields[].value   (text fields only; file fields are passed through)
  */
 export function resolveRequest(request: ApiRequest, vars: VariableMap): ResolvedRequest {
   const r = (s: string) => resolveString(s, vars);
   return {
     ...request,
-    url:         r(request.url),
-    queryParams: request.queryParams.map(p => ({ ...p, value: r(p.value) })),
-    headers:     request.headers.map(h => ({ ...h, value: r(h.value) })),
-    bodyRaw:     r(request.bodyRaw),
+    url:            r(request.url),
+    queryParams:    request.queryParams.map(p => ({ ...p, value: r(p.value) })),
+    headers:        request.headers.map(h => ({ ...h, value: r(h.value) })),
+    bodyRaw:        r(request.bodyRaw),
+    bodyFormFields: request.bodyFormFields.map(f =>
+      f.type === 'file' ? f : { ...f, value: r(f.value) },
+    ),
   };
 }
 
@@ -116,6 +120,8 @@ export function findUnresolvedVars(request: ApiRequest, vars: VariableMap): Set<
     ...request.queryParams.map(p => p.value),
     ...request.headers.map(h => h.value),
     request.bodyRaw,
+    // Text form fields only — file fields contain filenames, not variable expressions
+    ...request.bodyFormFields.filter(f => f.type === 'text').map(f => f.value),
   ];
 
   const missing = new Set<string>();
