@@ -1,68 +1,89 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiRequest } from '../../shared/models/api-request.model';
-import { ApiResponse } from '../../shared/models/api-response.model';
 import { HistoryItem } from '../../shared/models/history-item.model';
 import { EnvironmentsService } from './environments';
 import { HistoryService } from './history';
+import { TabsService } from './tabs';
 import { VariableResolverService } from '../utils/variable-resolver.service';
 import { RunnerApiService } from '../api/runner-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceService {
 
+  private readonly tabsService = inject(TabsService);
   private readonly envService = inject(EnvironmentsService);
   private readonly historyService = inject(HistoryService);
   private readonly resolver = inject(VariableResolverService);
   private readonly runner = inject(RunnerApiService);
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // ── State (derived from TabsService) ──────────────────────────────────────
 
-  /** The request currently loaded in the editor. */
-  readonly currentRequest = signal<ApiRequest | null>(null);
+  /** The request currently loaded in the active tab. */
+  readonly currentRequest = computed(() => this.tabsService.activeTab()?.request ?? null);
 
   /**
-   * When set, the editor loads this request into its form fields.
-   * Set via loadRequest(); the editor watches this via an input binding.
+   * The request to seed the editor with when the active tab changes.
+   * Only re-evaluates when the active tab ID changes, not on every keystroke.
    */
-  readonly requestToLoad = signal<ApiRequest | null>(null);
+  readonly requestToLoad = computed(() => {
+    const tabId = this.tabsService.activeTabId();
+    return untracked(() => {
+      const req = this.tabsService.tabs().find(t => t.id === tabId)?.request;
+      // Spread to always produce a new reference — guarantees the editor's
+      // effect re-fires even if the tab's request object hasn't been mutated yet.
+      return req ? { ...req } : null;
+    });
+  });
 
-  /** The most recent response, or null if not yet executed. */
-  readonly response = signal<ApiResponse | null>(null);
+  /** The most recent response for the active tab, or null. */
+  readonly response = computed(() => this.tabsService.activeTab()?.response ?? null);
 
-  /** True while a request is in flight. */
-  readonly isLoading = signal(false);
+  /** True while a request is in flight for the active tab. */
+  readonly isLoading = computed(() => this.tabsService.activeTab()?.isLoading ?? false);
 
   /** Human-readable error from the last failed execution, or null. */
-  readonly errorMessage = signal<string | null>(null);
+  readonly errorMessage = computed(() => this.tabsService.activeTab()?.errorMessage ?? null);
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
   /** Called by the editor on every request state change. */
   setRequest(request: ApiRequest): void {
-    this.currentRequest.set(request);
+    this.tabsService.updateActiveRequest(request);
   }
 
   /**
-   * Load a saved request into the editor and clear the previous response.
+   * Open a saved (or new) request — creates a tab or activates an existing one.
    * The editor observes requestToLoad via an input binding.
    */
   loadRequest(request: ApiRequest): void {
-    this.requestToLoad.set(request);
-    this.response.set(null);
-    this.errorMessage.set(null);
+    this.tabsService.openRequest(request);
+  }
+
+  /** Open a new blank tab and activate it. */
+  newTab(): void {
+    this.tabsService.newTab();
+  }
+
+  /**
+   * After a successful save, reset the active tab's dirty flag and
+   * update its savedFingerprint / label to match the persisted record.
+   */
+  markSaved(req: ApiRequest): void {
+    const tab = untracked(() => this.tabsService.activeTab());
+    if (tab) this.tabsService.markTabSaved(tab.id, req);
   }
 
   /**
    * Resolve variables, apply auth, proxy through the backend runner,
-   * update the response signal, and persist the result to history.
+   * update the tab's response, and persist the result to history.
    */
   async execute(): Promise<void> {
-    const request = this.currentRequest();
-    if (!request || this.isLoading()) return;
+    const tab = untracked(() => this.tabsService.activeTab());
+    if (!tab || tab.isLoading) return;
 
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
+    const { id: tabId, request } = tab;
+    this.tabsService.setTabLoading(tabId, true);
 
     try {
       const envMap = this.envService.activeVarMap();
@@ -70,7 +91,7 @@ export class WorkspaceService {
       const withAuth = applyAuth(resolved);
 
       const response = await firstValueFrom(this.runner.execute(withAuth));
-      this.response.set(response);
+      this.tabsService.setTabResponse(tabId, response, null);
 
       const historyItem: HistoryItem = {
         id: crypto.randomUUID(),
@@ -83,10 +104,7 @@ export class WorkspaceService {
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'An unexpected error occurred.';
-      this.errorMessage.set(message);
-      this.response.set(null);
-    } finally {
-      this.isLoading.set(false);
+      this.tabsService.setTabResponse(tabId, null, message);
     }
   }
 }

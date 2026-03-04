@@ -76,4 +76,45 @@ export class RequestsService {
     this.requests.update(reqs => reqs.filter(r => r.id !== id));
     this.db.requests.delete(id);
   }
+
+  /**
+   * Create a blank request in a specific collection (and optionally folder),
+   * persist it immediately, and return it.
+   */
+  createInCollection(
+    collectionId: string | null,
+    folderId: string | null = null,
+  ): ApiRequest {
+    const now = new Date().toISOString();
+    const request: ApiRequest = {
+      id: crypto.randomUUID(),
+      name: 'New Request',
+      method: 'GET',
+      url: '',
+      queryParams: [],
+      headers: [],
+      bodyType: 'none',
+      bodyRaw: '',
+      auth: { type: 'none' },
+      collectionId: collectionId ?? undefined,
+      folderId: folderId ?? undefined,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.requests.update(reqs => [request, ...reqs]);
+    this.db.requests.add(request);
+    return request;
+  }
+
+  /** Remove all requests belonging to a collection (cascade delete). */
+  deleteByCollection(collectionId: string): void {
+    this.requests.update(reqs => reqs.filter(r => r.collectionId !== collectionId));
+    this.db.requests.where('collectionId').equals(collectionId).delete();
+  }
+
+  /** Remove all requests belonging to a folder (cascade delete). */
+  deleteByFolder(folderId: string): void {
+    this.requests.update(reqs => reqs.filter(r => r.folderId !== folderId));
+    this.db.requests.where('folderId').equals(folderId).delete();
+  }
 }

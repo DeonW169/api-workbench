@@ -1,16 +1,26 @@
 <div class="tabs-bar">
   <div class="tabs-list">
-    @for (tab of tabs(); track tab.id) {
+    @for (tab of tabsService.tabs(); track tab.id) {
       <div
         class="tab"
-        [class.active]="activeTabId() === tab.id"
+        [class.active]="tabsService.activeTabId() === tab.id"
         (click)="setActive(tab.id)"
       >
         <span class="tab-method" [attr.data-method]="tab.method">{{ tab.method }}</span>
         <span class="tab-label">{{ tab.label }}</span>
-        @if (tab.dirty) {
+        @if (tab.isDirty) {
           <span class="tab-dirty-dot" matTooltip="Unsaved changes"></span>
         }
+        <button
+          mat-icon-button
+          class="tab-more"
+          [matMenuTriggerFor]="tabMenu"
+          [matMenuTriggerData]="{ tabId: tab.id }"
+          (click)="$event.stopPropagation()"
+          matTooltip="More"
+        >
+          <mat-icon>more_horiz</mat-icon>
+        </button>
         <button
           mat-icon-button
           class="tab-close"
@@ -26,9 +36,18 @@
   <button
     mat-icon-button
     class="add-tab-btn"
-    (click)="addTab()"
+    (click)="newTab()"
     matTooltip="New tab"
   >
     <mat-icon>add</mat-icon>
   </button>
 </div>
+
+<mat-menu #tabMenu="matMenu">
+  <ng-template matMenuContent let-tabId="tabId">
+    <button mat-menu-item (click)="closeOtherTabs(tabId)">
+      <mat-icon>tab_close</mat-icon>
+      Close other tabs
+    </button>
+  </ng-template>
+</mat-menu>

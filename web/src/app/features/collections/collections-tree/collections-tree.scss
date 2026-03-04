@@ -10,6 +10,30 @@
   flex-direction: column;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+// ── Toolbar ───────────────────────────────────────────────────────────────────
+
+.tree-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+
+  .add-coll-btn {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--mat-sys-on-surface-variant);
+
+    mat-icon {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+    }
+  }
 }
 
 // ── Empty state ───────────────────────────────────────────────────────────────
@@ -31,116 +55,91 @@
     margin-bottom: 4px;
   }
 
-  span {
-    font-size: 0.875rem;
-  }
-
-  .empty-hint {
-    font-size: 0.75rem;
-    text-align: center;
-    opacity: 0.7;
-  }
+  span { font-size: 0.875rem; }
+  .empty-hint { font-size: 0.75rem; text-align: center; opacity: 0.7; }
 }
 
-// ── Collection header ─────────────────────────────────────────────────────────
+// ── Tree rows ─────────────────────────────────────────────────────────────────
 
-.collection-header {
+.tree-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 12px 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant);
-
-  .coll-icon {
-    font-size: 14px;
-    height: 14px;
-    width: 14px;
-    opacity: 0.7;
-  }
-
-  .coll-name {
-    flex: 1;
-  }
-
-  .coll-count {
-    font-size: 0.68rem;
-    background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
-    padding: 1px 6px;
-    border-radius: 9px;
-  }
-}
-
-// ── Request row ───────────────────────────────────────────────────────────────
-
-.req-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 8px 0 12px;
-  height: 36px;
-  cursor: pointer;
+  height: 32px;
   border-radius: 6px;
-  margin: 1px 6px;
-  transition: background 120ms ease;
+  margin: 1px 4px;
+  padding-right: 4px;
+  cursor: pointer;
+  transition: background 100ms ease;
   position: relative;
+  gap: 4px;
 
   &:hover {
     background: var(--mat-sys-surface-container);
 
-    .req-actions {
-      opacity: 1;
-    }
+    .row-actions { opacity: 1; }
   }
 
   &.active {
     background: var(--mat-sys-secondary-container);
     color: var(--mat-sys-on-secondary-container);
-
-    .method-badge {
-      opacity: 1;
-    }
   }
 }
 
-// ── Method badge ──────────────────────────────────────────────────────────────
+// Depth-based left padding
+.collection-row { padding-left: 4px; }
+.folder-row     { padding-left: 20px; }
 
-.method-badge {
-  flex-shrink: 0;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  min-width: 46px;
-  text-align: center;
-  padding: 2px 4px;
-  border-radius: 3px;
-
-  &[data-method='GET']    { color: var(--method-get);    background: color-mix(in srgb, var(--method-get)    12%, transparent); }
-  &[data-method='POST']   { color: var(--method-post);   background: color-mix(in srgb, var(--method-post)   12%, transparent); }
-  &[data-method='PUT']    { color: var(--method-put);    background: color-mix(in srgb, var(--method-put)    12%, transparent); }
-  &[data-method='PATCH']  { color: var(--method-patch);  background: color-mix(in srgb, var(--method-patch)  12%, transparent); }
-  &[data-method='DELETE'] { color: var(--method-delete); background: color-mix(in srgb, var(--method-delete) 12%, transparent); }
+.request-row {
+  &.depth-0 { padding-left: 8px; }   // uncategorized
+  &.depth-1 { padding-left: 36px; }  // in collection, no folder
+  &.depth-2 { padding-left: 52px; }  // in folder
 }
 
-// ── Request name ──────────────────────────────────────────────────────────────
+// ── Expand icon ───────────────────────────────────────────────────────────────
 
-.req-name {
+.expand-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.6;
+}
+
+// ── Node icon (folder) ────────────────────────────────────────────────────────
+
+.node-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  height: 15px;
+  width: 15px;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.7;
+}
+
+// ── Node label ────────────────────────────────────────────────────────────────
+
+.node-label {
   flex: 1;
   font-size: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
-  cursor: pointer;
+  user-select: none;
 }
+
+.collection-row .node-label {
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+// ── Rename input ──────────────────────────────────────────────────────────────
 
 .name-input {
   flex: 1;
   min-width: 0;
-  height: 24px;
+  height: 22px;
   padding: 0 6px;
   background: var(--mat-sys-surface-container-highest);
   border: 1px solid var(--mat-sys-primary);
@@ -150,28 +149,71 @@
   outline: none;
 }
 
-// ── Row actions ───────────────────────────────────────────────────────────────
+// ── Method badge ──────────────────────────────────────────────────────────────
 
-.req-actions {
+.method-badge {
+  flex-shrink: 0;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  min-width: 42px;
+  text-align: center;
+  padding: 1px 3px;
+  border-radius: 3px;
+
+  &[data-method='GET']    { color: var(--method-get);    background: color-mix(in srgb, var(--method-get)    12%, transparent); }
+  &[data-method='POST']   { color: var(--method-post);   background: color-mix(in srgb, var(--method-post)   12%, transparent); }
+  &[data-method='PUT']    { color: var(--method-put);    background: color-mix(in srgb, var(--method-put)    12%, transparent); }
+  &[data-method='PATCH']  { color: var(--method-patch);  background: color-mix(in srgb, var(--method-patch)  12%, transparent); }
+  &[data-method='DELETE'] { color: var(--method-delete); background: color-mix(in srgb, var(--method-delete) 12%, transparent); }
+}
+
+// ── Row actions (hover-reveal) ────────────────────────────────────────────────
+
+.row-actions {
   display: flex;
   align-items: center;
-  gap: 0;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition: opacity 100ms ease;
 
   .action-btn {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
 
     mat-icon {
-      font-size: 15px;
-      width: 15px;
-      height: 15px;
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
     }
 
-    &.delete-btn {
-      color: var(--mat-sys-error);
-    }
+    &.delete-btn { color: var(--mat-sys-error); }
+  }
+}
+
+// ── Section header (Uncategorized) ────────────────────────────────────────────
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px 4px;
+
+  .section-label {
+    flex: 1;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.6;
+  }
+
+  .section-count {
+    font-size: 0.65rem;
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+    padding: 1px 5px;
+    border-radius: 9px;
+    color: var(--mat-sys-on-surface-variant);
   }
 }

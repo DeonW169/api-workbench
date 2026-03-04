@@ -1,47 +1,36 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-interface RequestTab {
-  id: string;
-  label: string;
-  method: string;
-  dirty: boolean;
-}
+import { MatMenuModule } from '@angular/material/menu';
+import { TabsService } from '../../../core/state/tabs';
 
 @Component({
   selector: 'app-request-tabs',
-  imports: [MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [MatIconModule, MatButtonModule, MatTooltipModule, MatMenuModule],
   templateUrl: './request-tabs.html',
   styleUrl: './request-tabs.scss',
 })
 export class RequestTabs {
-  activeTabId = signal<string>('tab-1');
+  readonly tabsService = inject(TabsService);
 
-  tabs = signal<RequestTab[]>([
-    { id: 'tab-1', label: 'New Request', method: 'GET', dirty: false },
-  ]);
+  /** Tab id that the context menu is open for. */
+  menuTabId = '';
 
   setActive(id: string): void {
-    this.activeTabId.set(id);
-  }
-
-  addTab(): void {
-    const id = `tab-${Date.now()}`;
-    this.tabs.update(tabs => [
-      ...tabs,
-      { id, label: 'New Request', method: 'GET', dirty: false },
-    ]);
-    this.activeTabId.set(id);
+    this.tabsService.activateTab(id);
   }
 
   closeTab(id: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.tabs.update(tabs => tabs.filter(t => t.id !== id));
-    if (this.activeTabId() === id) {
-      const remaining = this.tabs();
-      if (remaining.length) this.activeTabId.set(remaining[remaining.length - 1].id);
-    }
+    this.tabsService.closeTab(id);
+  }
+
+  closeOtherTabs(id: string): void {
+    this.tabsService.closeOtherTabs(id);
+  }
+
+  newTab(): void {
+    this.tabsService.newTab();
   }
 }

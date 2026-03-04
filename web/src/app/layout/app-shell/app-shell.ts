@@ -13,7 +13,9 @@ import { RequestTabs } from '../../features/requests/request-tabs/request-tabs';
 import { RequestEditor } from '../../features/requests/request-editor/request-editor';
 import { ResponseViewer } from '../../features/responses/response-viewer/response-viewer';
 import { SettingsMenu } from './settings-menu/settings-menu';
+import { CollectionsService } from '../../core/state/collections';
 import { EnvironmentsService } from '../../core/state/environments';
+import { FoldersService } from '../../core/state/folders';
 import { HistoryService } from '../../core/state/history';
 import { WorkspaceService } from '../../core/state/workspace';
 import { RequestsService } from '../../core/state/requests';
@@ -48,6 +50,8 @@ export class AppShell {
   activeSection = signal<SidenavSection>('collections');
 
   constructor() {
+    inject(CollectionsService).init();
+    inject(FoldersService).init();
     inject(EnvironmentsService).init();
     inject(HistoryService).init();
     this.requestsService.init();
@@ -67,24 +71,11 @@ export class AppShell {
       ? { ...current, name: existing.name }
       : current;
     this.requestsService.save(toSave);
+    this.workspace.markSaved(toSave);
   }
 
-  /** Load a blank request into the editor (does not save to DB). */
+  /** Open a new blank tab in the workspace. */
   newRequest(): void {
-    const now = new Date().toISOString();
-    const blank: ApiRequest = {
-      id: crypto.randomUUID(),
-      name: 'New Request',
-      method: 'GET',
-      url: '',
-      queryParams: [],
-      headers: [],
-      bodyType: 'none',
-      bodyRaw: '',
-      auth: { type: 'none' },
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.workspace.loadRequest(blank);
+    this.workspace.newTab();
   }
 }

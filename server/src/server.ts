@@ -7,7 +7,7 @@ async function bootstrap() {
 
     await app.register(cors, {
         // origin: ['http://localhost:4200'],
-        origin: ['http://localhost:56558'],
+        origin: ['http://localhost:65123'],
         credentials: true,
     });
 

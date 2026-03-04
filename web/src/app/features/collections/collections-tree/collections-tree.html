@@ -1,31 +1,238 @@
-@if (reqService.requests().length === 0) {
+<!-- ── Toolbar ──────────────────────────────────────────────────────────── -->
+<div class="tree-toolbar">
+  <button mat-button class="add-coll-btn" (click)="addCollection()">
+    <mat-icon>add</mat-icon>
+    New Collection
+  </button>
+</div>
+
+<mat-divider />
+
+<!-- ── Empty state ───────────────────────────────────────────────────────── -->
+@if (collService.collections().length === 0 && uncategorizedRequests().length === 0) {
   <div class="empty-state">
     <mat-icon>folder_open</mat-icon>
-    <span>No saved requests</span>
-    <span class="empty-hint">Use Save in the toolbar to add one</span>
+    <span>No collections yet</span>
+    <span class="empty-hint">Click "New Collection" to get started</span>
   </div>
-} @else {
+}
 
-  <!-- Default collection header -->
-  <div class="collection-header">
-    <mat-icon class="coll-icon">folder</mat-icon>
-    <span class="coll-name">My Requests</span>
-    <span class="coll-count">{{ reqService.requests().length }}</span>
+<!-- ── Collections ───────────────────────────────────────────────────────── -->
+@for (coll of collService.collections(); track coll.id) {
+
+  <!-- Collection row -->
+  <div class="tree-row collection-row" (click)="toggleCollection(coll.id)">
+    <mat-icon class="expand-icon">
+      {{ isCollectionExpanded(coll.id) ? 'expand_more' : 'chevron_right' }}
+    </mat-icon>
+    <mat-icon class="node-icon">
+      {{ isCollectionExpanded(coll.id) ? 'folder_open' : 'folder' }}
+    </mat-icon>
+
+    @if (editingId() === coll.id) {
+      <input
+        class="name-input"
+        [attr.data-edit-id]="coll.id"
+        [value]="editingName()"
+        (input)="editingName.set($any($event.target).value)"
+        (blur)="commitRename(coll.id)"
+        (keydown.enter)="$any($event.target).blur()"
+        (keydown.escape)="cancelRename()"
+        (click)="$event.stopPropagation()"
+      />
+    } @else {
+      <span
+        class="node-label"
+        (dblclick)="startRename('collection', coll.id, coll.name, $event)"
+      >{{ coll.name }}</span>
+    }
+
+    <span class="row-actions" (click)="$event.stopPropagation()">
+      <button
+        mat-icon-button class="action-btn"
+        matTooltip="New folder" matTooltipPosition="above"
+        (click)="addFolder(coll.id, $event)"
+      ><mat-icon>create_new_folder</mat-icon></button>
+      <button
+        mat-icon-button class="action-btn"
+        matTooltip="New request" matTooltipPosition="above"
+        (click)="addRequest(coll.id, null, $event)"
+      ><mat-icon>add</mat-icon></button>
+      <button
+        mat-icon-button class="action-btn"
+        matTooltip="Rename" matTooltipPosition="above"
+        (click)="startRename('collection', coll.id, coll.name, $event)"
+      ><mat-icon>edit</mat-icon></button>
+      <button
+        mat-icon-button class="action-btn delete-btn"
+        matTooltip="Delete" matTooltipPosition="above"
+        (click)="deleteCollection(coll.id, $event)"
+      ><mat-icon>delete</mat-icon></button>
+    </span>
   </div>
 
-  <!-- Request list -->
-  @for (req of reqService.requests(); track req.id) {
+  <!-- Collection children -->
+  @if (isCollectionExpanded(coll.id)) {
+
+    <!-- Folders -->
+    @for (folder of foldersForCollection(coll.id); track folder.id) {
+
+      <!-- Folder row -->
+      <div class="tree-row folder-row" (click)="toggleFolder(folder.id)">
+        <mat-icon class="expand-icon">
+          {{ isFolderExpanded(folder.id) ? 'expand_more' : 'chevron_right' }}
+        </mat-icon>
+        <mat-icon class="node-icon">
+          {{ isFolderExpanded(folder.id) ? 'folder_open' : 'folder' }}
+        </mat-icon>
+
+        @if (editingId() === folder.id) {
+          <input
+            class="name-input"
+            [attr.data-edit-id]="folder.id"
+            [value]="editingName()"
+            (input)="editingName.set($any($event.target).value)"
+            (blur)="commitRename(folder.id)"
+            (keydown.enter)="$any($event.target).blur()"
+            (keydown.escape)="cancelRename()"
+            (click)="$event.stopPropagation()"
+          />
+        } @else {
+          <span
+            class="node-label"
+            (dblclick)="startRename('folder', folder.id, folder.name, $event)"
+          >{{ folder.name }}</span>
+        }
+
+        <span class="row-actions" (click)="$event.stopPropagation()">
+          <button
+            mat-icon-button class="action-btn"
+            matTooltip="New request" matTooltipPosition="above"
+            (click)="addRequest(coll.id, folder.id, $event)"
+          ><mat-icon>add</mat-icon></button>
+          <button
+            mat-icon-button class="action-btn"
+            matTooltip="Rename" matTooltipPosition="above"
+            (click)="startRename('folder', folder.id, folder.name, $event)"
+          ><mat-icon>edit</mat-icon></button>
+          <button
+            mat-icon-button class="action-btn delete-btn"
+            matTooltip="Delete" matTooltipPosition="above"
+            (click)="deleteFolder(folder.id, $event)"
+          ><mat-icon>delete</mat-icon></button>
+        </span>
+      </div>
+
+      <!-- Requests inside folder -->
+      @if (isFolderExpanded(folder.id)) {
+        @for (req of requestsForFolder(coll.id, folder.id); track req.id) {
+          <div
+            class="tree-row request-row depth-2"
+            [class.active]="isActive(req.id)"
+            (click)="openRequest(req)"
+          >
+            <span class="method-badge" [attr.data-method]="req.method">{{ req.method }}</span>
+
+            @if (editingId() === req.id) {
+              <input
+                class="name-input"
+                [attr.data-edit-id]="req.id"
+                [value]="editingName()"
+                (input)="editingName.set($any($event.target).value)"
+                (blur)="commitRename(req.id)"
+                (keydown.enter)="$any($event.target).blur()"
+                (keydown.escape)="cancelRename()"
+                (click)="$event.stopPropagation()"
+              />
+            } @else {
+              <span
+                class="node-label"
+                (dblclick)="startRename('request', req.id, req.name, $event)"
+              >{{ req.name }}</span>
+            }
+
+            <span class="row-actions" (click)="$event.stopPropagation()">
+              <button
+                mat-icon-button class="action-btn"
+                matTooltip="Rename" matTooltipPosition="above"
+                (click)="startRename('request', req.id, req.name, $event)"
+              ><mat-icon>edit</mat-icon></button>
+              <button
+                mat-icon-button class="action-btn delete-btn"
+                matTooltip="Delete" matTooltipPosition="above"
+                (click)="deleteRequest(req.id, $event)"
+              ><mat-icon>delete</mat-icon></button>
+            </span>
+          </div>
+        }
+      }
+
+    }
+
+    <!-- Requests directly in collection (no folder) -->
+    @for (req of requestsInCollection(coll.id); track req.id) {
+      <div
+        class="tree-row request-row depth-1"
+        [class.active]="isActive(req.id)"
+        (click)="openRequest(req)"
+      >
+        <span class="method-badge" [attr.data-method]="req.method">{{ req.method }}</span>
+
+        @if (editingId() === req.id) {
+          <input
+            class="name-input"
+            [attr.data-edit-id]="req.id"
+            [value]="editingName()"
+            (input)="editingName.set($any($event.target).value)"
+            (blur)="commitRename(req.id)"
+            (keydown.enter)="$any($event.target).blur()"
+            (keydown.escape)="cancelRename()"
+            (click)="$event.stopPropagation()"
+          />
+        } @else {
+          <span
+            class="node-label"
+            (dblclick)="startRename('request', req.id, req.name, $event)"
+          >{{ req.name }}</span>
+        }
+
+        <span class="row-actions" (click)="$event.stopPropagation()">
+          <button
+            mat-icon-button class="action-btn"
+            matTooltip="Rename" matTooltipPosition="above"
+            (click)="startRename('request', req.id, req.name, $event)"
+          ><mat-icon>edit</mat-icon></button>
+          <button
+            mat-icon-button class="action-btn delete-btn"
+            matTooltip="Delete" matTooltipPosition="above"
+            (click)="deleteRequest(req.id, $event)"
+          ><mat-icon>delete</mat-icon></button>
+        </span>
+      </div>
+    }
+
+  }
+}
+
+<!-- ── Uncategorized (backward compat) ───────────────────────────────────── -->
+@if (uncategorizedRequests().length > 0) {
+  <div class="section-header">
+    <span class="section-label">Uncategorized</span>
+    <span class="section-count">{{ uncategorizedRequests().length }}</span>
+  </div>
+
+  @for (req of uncategorizedRequests(); track req.id) {
     <div
-      class="req-item"
+      class="tree-row request-row depth-0"
       [class.active]="isActive(req.id)"
-      (click)="open(req)"
+      (click)="openRequest(req)"
     >
       <span class="method-badge" [attr.data-method]="req.method">{{ req.method }}</span>
 
       @if (editingId() === req.id) {
         <input
           class="name-input"
-          [attr.data-rename-id]="req.id"
+          [attr.data-edit-id]="req.id"
           [value]="editingName()"
           (input)="editingName.set($any($event.target).value)"
           (blur)="commitRename(req.id)"
@@ -34,34 +241,23 @@
           (click)="$event.stopPropagation()"
         />
       } @else {
-        <span class="req-name" (dblclick)="startRename(req, $event)">{{ req.name }}</span>
+        <span
+          class="node-label"
+          (dblclick)="startRename('request', req.id, req.name, $event)"
+        >{{ req.name }}</span>
       }
 
-      <span class="req-actions">
+      <span class="row-actions" (click)="$event.stopPropagation()">
         <button
-          mat-icon-button
-          class="action-btn"
-          (click)="startRename(req, $event)"
-          matTooltip="Rename"
-        >
-          <mat-icon>edit</mat-icon>
-        </button>
+          mat-icon-button class="action-btn"
+          matTooltip="Rename" matTooltipPosition="above"
+          (click)="startRename('request', req.id, req.name, $event)"
+        ><mat-icon>edit</mat-icon></button>
         <button
-          mat-icon-button
-          class="action-btn"
-          (click)="duplicate(req.id, $event)"
-          matTooltip="Duplicate"
-        >
-          <mat-icon>content_copy</mat-icon>
-        </button>
-        <button
-          mat-icon-button
-          class="action-btn delete-btn"
-          (click)="delete(req.id, $event)"
-          matTooltip="Delete"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
+          mat-icon-button class="action-btn delete-btn"
+          matTooltip="Delete" matTooltipPosition="above"
+          (click)="deleteRequest(req.id, $event)"
+        ><mat-icon>delete</mat-icon></button>
       </span>
     </div>
   }
