@@ -12,6 +12,10 @@
       New Request
     </button>
 
+    <button mat-icon-button class="toolbar-btn" matTooltip="Import cURL" (click)="importCurl()">
+      <mat-icon>terminal</mat-icon>
+    </button>
+
     <button
       mat-flat-button
       class="toolbar-btn save-btn"
@@ -103,6 +107,7 @@
           <app-request-editor
             class="editor-pane__editor"
             [requestToLoad]="workspace.requestToLoad()"
+            [resolvedRequest]="workspace.resolvedPreview()"
             [isLoading]="workspace.isLoading()"
             (requestChange)="workspace.setRequest($event)"
             (sendClicked)="workspace.execute()"

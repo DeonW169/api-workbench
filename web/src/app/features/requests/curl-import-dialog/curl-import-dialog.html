@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>Import cURL</h2>
+
+<mat-dialog-content class="import-content">
+  <p class="import-hint">
+    Paste a cURL command. Supports
+    <code>-X</code>, <code>-H</code>, <code>-d</code>, <code>--data-raw</code>,
+    <code>--data-urlencode</code>, <code>--form</code>, and <code>--user</code>.
+  </p>
+
+  <textarea
+    class="curl-input"
+    placeholder="curl https://api.example.com/endpoint \&#10;  -X POST \&#10;  -H 'Content-Type: application/json' \&#10;  -d '{&quot;key&quot;: &quot;value&quot;}'"
+    autocomplete="off"
+    spellcheck="false"
+    [value]="command()"
+    (input)="onInput($event)"
+    (keydown)="onKeydown($event)"
+  ></textarea>
+
+  @if (error()) {
+    <div class="import-error">
+      <mat-icon>error_outline</mat-icon>
+      {{ error() }}
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-flat-button
+    [disabled]="!command().trim()"
+    (click)="doImport()"
+  >
+    <mat-icon>input</mat-icon>
+    Import
+  </button>
+</mat-dialog-actions>

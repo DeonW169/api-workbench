@@ -40,6 +40,30 @@ export class TabsService {
     return tab;
   }
 
+  /**
+   * Open a new unsaved tab pre-populated with the given request.
+   * Used when importing a cURL command or similar one-shot operations.
+   * The tab has no `requestId` (not yet saved to DB).
+   */
+  newTabWithRequest(req: ApiRequest): WorkspaceTab {
+    const tab: WorkspaceTab = {
+      id: crypto.randomUUID(),
+      requestId: null,
+      label: req.name,
+      method: req.method,
+      isDirty: false,
+      request: req,
+      savedFingerprint: fingerprint(req),
+      response: null,
+      isLoading: false,
+      errorMessage: null,
+      assertionSummary: null,
+    };
+    this.tabs.update(tabs => [...tabs, tab]);
+    this.activeTabId.set(tab.id);
+    return tab;
+  }
+
   // ── Navigation ────────────────────────────────────────────────────────────
 
   activateTab(id: string): void {

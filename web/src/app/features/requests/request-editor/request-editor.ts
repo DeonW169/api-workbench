@@ -24,6 +24,7 @@ import {
   ASSERTION_TYPES,
   AssertionType,
 } from '../../../shared/models/assertion.model';
+import { generateCurl } from '../../../core/utils/curl-generator';
 
 interface BodyTypeOption {
   value: BodyType;
@@ -178,6 +179,9 @@ export class RequestEditor {
   /** When set, loads the provided request into all editor fields. */
   readonly requestToLoad = input<ApiRequest | null>(null);
 
+  /** Variable-resolved version of the current request, used for cURL export. */
+  readonly resolvedRequest = input<ApiRequest | null>(null);
+
   /** True while a request is in flight — disables the Send button. */
   readonly isLoading = input(false);
 
@@ -226,6 +230,19 @@ export class RequestEditor {
     // Emit to parent whenever any part of the request changes.
     effect(() => {
       this.requestChange.emit(this.requestSnapshot());
+    });
+  }
+
+  // ── cURL export ───────────────────────────────────────────────────────────
+
+  readonly copiedCurl = signal(false);
+
+  copyCurl(): void {
+    const req = this.resolvedRequest() ?? this.requestSnapshot();
+    const command = generateCurl(req);
+    navigator.clipboard.writeText(command).then(() => {
+      this.copiedCurl.set(true);
+      setTimeout(() => this.copiedCurl.set(false), 2000);
     });
   }
 

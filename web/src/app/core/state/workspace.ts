@@ -105,6 +105,32 @@ export class WorkspaceService {
   }
 
   /**
+   * Create a new unsaved tab pre-populated from a parsed cURL import.
+   * `partial` must include at least `url`, `method`, and the auth/body fields.
+   * Missing fields fall back to the blank-request defaults.
+   */
+  importFromParsed(partial: Partial<ApiRequest> & { name: string }): void {
+    const now = new Date().toISOString();
+    const req: ApiRequest = {
+      id: crypto.randomUUID(),
+      name: partial.name,
+      method: partial.method ?? 'GET',
+      url: partial.url ?? '',
+      queryParams: partial.queryParams ?? [],
+      headers: partial.headers ?? [],
+      bodyType: partial.bodyType ?? 'none',
+      bodyRaw: partial.bodyRaw ?? '',
+      bodyFormFields: partial.bodyFormFields ?? [],
+      auth: partial.auth ?? { type: 'none' },
+      variables: [],
+      assertions: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.tabsService.newTabWithRequest(req);
+  }
+
+  /**
    * After a successful save, reset the active tab's dirty flag and
    * update its savedFingerprint / label to match the persisted record.
    */

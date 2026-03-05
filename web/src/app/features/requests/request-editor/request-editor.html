@@ -48,6 +48,15 @@
       {{ isLoading() ? 'Sending…' : 'Send' }}
     </button>
 
+    <button
+      mat-icon-button
+      class="curl-btn"
+      (click)="copyCurl()"
+      [matTooltip]="copiedCurl() ? 'Copied!' : 'Copy as cURL'"
+    >
+      <mat-icon>{{ copiedCurl() ? 'check' : 'terminal' }}</mat-icon>
+    </button>
+
   </div>
 
   <!-- ── Detail tabs ───────────────────────────────────────────────────────── -->

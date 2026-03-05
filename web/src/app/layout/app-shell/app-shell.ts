@@ -3,6 +3,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { CollectionsTree } from '../../features/collections/collections-tree/collections-tree';
@@ -22,6 +23,7 @@ import { HistoryService } from '../../core/state/history';
 import { WorkspaceService } from '../../core/state/workspace';
 import { RequestsService } from '../../core/state/requests';
 import { ApiRequest } from '../../shared/models/api-request.model';
+import { CurlImportDialog } from '../../features/requests/curl-import-dialog/curl-import-dialog';
 
 type SidenavSection = 'collections' | 'history' | 'environments';
 
@@ -50,6 +52,7 @@ type SidenavSection = 'collections' | 'history' | 'environments';
 export class AppShell {
   readonly workspace = inject(WorkspaceService);
   readonly requestsService = inject(RequestsService);
+  private readonly dialog = inject(MatDialog);
   activeSection = signal<SidenavSection>('collections');
 
   constructor() {
@@ -81,5 +84,10 @@ export class AppShell {
   /** Open a new blank tab in the workspace. */
   newRequest(): void {
     this.workspace.newTab();
+  }
+
+  /** Open the cURL import dialog. */
+  importCurl(): void {
+    this.dialog.open(CurlImportDialog, { width: '600px', autoFocus: '.curl-input' });
   }
 }

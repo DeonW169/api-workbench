@@ -58,6 +58,23 @@
   min-width: 0;
 }
 
+// cURL copy button
+.curl-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    transition: color 0.15s;
+  }
+
+  &:hover mat-icon { color: var(--mat-sys-primary); }
+}
+
 // Send button
 .send-btn {
   flex-shrink: 0;
