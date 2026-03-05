@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiResponse } from '../../../shared/models/api-response.model';
+import { Assertion, AssertionSummary } from '../../../shared/models/assertion.model';
 import { JsonTree } from '../json-tree/json-tree';
 
 /** Status range for color-coding. */
@@ -34,6 +35,9 @@ export class ResponseViewer {
 
   /** Error message from the last failed execution, or null. */
   readonly errorMessage = input<string | null>(null);
+
+  /** Assertion results from the last execution, or null. */
+  readonly assertionSummary = input<AssertionSummary | null>(null);
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
@@ -149,6 +153,19 @@ export class ResponseViewer {
 
   expandAll(): void   { this.expandAllGen.update(n => n + 1); }
   collapseAll(): void { this.collapseAllGen.update(n => n + 1); }
+
+  // ── Assertions ────────────────────────────────────────────────────────────
+
+  autoLabel(a: Assertion): string {
+    if (a.label) return a.label;
+    switch (a.type) {
+      case 'statusEquals':   return `Status = ${a.expected}`;
+      case 'bodyContains':   return `Body contains "${a.substring}"`;
+      case 'headerExists':   return `Header "${a.header}" exists`;
+      case 'jsonPathExists': return `${a.path} exists`;
+      case 'jsonPathEquals': return `${a.path} = "${a.expected}"`;
+    }
+  }
 
   // ── Copy ─────────────────────────────────────────────────────────────────
 

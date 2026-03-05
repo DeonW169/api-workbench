@@ -1,3 +1,5 @@
+import { Assertion } from './assertion.model';
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type BodyType = 'none' | 'json' | 'text' | 'form-data' | 'x-www-form-urlencoded';
 
@@ -63,6 +65,8 @@ export interface ApiRequest {
   auth: AuthConfig;
   /** Per-request variable overrides (highest precedence). UI not yet implemented. */
   variables: RequestVariable[];
+  /** Assertions evaluated after each execution. UI not yet implemented. */
+  assertions: Assertion[];
   collectionId?: string | null;
   folderId?: string | null;
   createdAt: string;

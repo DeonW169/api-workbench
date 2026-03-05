@@ -98,6 +98,7 @@ export class RequestsService {
       bodyFormFields: [],
       auth: { type: 'none' },
       variables: [],
+      assertions: [],
       collectionId: collectionId ?? undefined,
       folderId: folderId ?? undefined,
       createdAt: now,

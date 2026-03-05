@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { ApiRequest } from '../../shared/models/api-request.model';
 import { ApiResponse } from '../../shared/models/api-response.model';
+import { AssertionSummary } from '../../shared/models/assertion.model';
 import { WorkspaceTab } from '../../shared/models/workspace-tab.model';
 
 @Injectable({ providedIn: 'root' })
@@ -101,10 +102,15 @@ export class TabsService {
     );
   }
 
-  setTabResponse(id: string, response: ApiResponse | null, errorMessage: string | null): void {
+  setTabResponse(
+    id: string,
+    response: ApiResponse | null,
+    errorMessage: string | null,
+    assertionSummary: AssertionSummary | null = null,
+  ): void {
     this.tabs.update(tabs =>
       tabs.map(t =>
-        t.id === id ? { ...t, response, errorMessage, isLoading: false } : t,
+        t.id === id ? { ...t, response, errorMessage, assertionSummary, isLoading: false } : t,
       ),
     );
   }
@@ -149,6 +155,7 @@ function createBlankTab(): WorkspaceTab {
     bodyFormFields: [],
     auth: { type: 'none' },
     variables: [],
+    assertions: [],
     createdAt: now,
     updatedAt: now,
   };
@@ -163,6 +170,7 @@ function createBlankTab(): WorkspaceTab {
     response: null,
     isLoading: false,
     errorMessage: null,
+    assertionSummary: null,
   };
 }
 
@@ -178,6 +186,7 @@ function reqToTab(req: ApiRequest): WorkspaceTab {
     response: null,
     isLoading: false,
     errorMessage: null,
+    assertionSummary: null,
   };
 }
 

@@ -1,5 +1,6 @@
 import { ApiRequest, HttpMethod } from './api-request.model';
 import { ApiResponse } from './api-response.model';
+import { AssertionSummary } from './assertion.model';
 
 /**
  * Represents one open tab in the editor strip.
@@ -29,4 +30,6 @@ export interface WorkspaceTab {
   isLoading: boolean;
   /** Human-readable error from the last failed execution, or null. */
   errorMessage: string | null;
+  /** Assertion results from the last execution, or null before any run. */
+  assertionSummary: AssertionSummary | null;
 }

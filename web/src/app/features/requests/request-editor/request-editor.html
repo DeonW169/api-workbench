@@ -404,6 +404,122 @@
       </div>
     </mat-tab>
 
+    <!-- Assertions -->
+    <mat-tab [label]="assertionsLabel()">
+      <div class="tab-content assertions-tab">
+
+        <div class="assertions-list">
+          @for (a of assertions(); track a.id) {
+            <div class="assertion-row">
+
+              <!-- Enable toggle -->
+              <mat-checkbox
+                class="assertion-enabled"
+                [checked]="a.enabled"
+                (change)="setAssertionEnabled(a.id, $event.checked)"
+              />
+
+              <!-- Type selector -->
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="assertion-type-field">
+                <mat-select [value]="a.type" (valueChange)="setAssertionType(a.id, $event)">
+                  @for (t of assertionTypes; track t) {
+                    <mat-option [value]="t">{{ t }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Type-specific inputs -->
+              <div class="assertion-fields">
+                @switch (a.type) {
+
+                  @case ('statusEquals') {
+                    <input
+                      class="assertion-input assertion-input--narrow"
+                      type="number"
+                      min="100" max="599"
+                      placeholder="200"
+                      [value]="a.expected"
+                      (input)="patchAssertion(a.id, { expected: +$any($event.target).value })"
+                    />
+                  }
+
+                  @case ('bodyContains') {
+                    <input
+                      class="assertion-input"
+                      placeholder="Substring to find…"
+                      [value]="a.substring"
+                      (input)="patchAssertion(a.id, { substring: $any($event.target).value })"
+                    />
+                  }
+
+                  @case ('headerExists') {
+                    <input
+                      class="assertion-input"
+                      placeholder="Header name, e.g. Content-Type"
+                      [value]="a.header"
+                      (input)="patchAssertion(a.id, { header: $any($event.target).value })"
+                    />
+                  }
+
+                  @case ('jsonPathExists') {
+                    <input
+                      class="assertion-input mono"
+                      placeholder="$.path.to.value"
+                      [value]="a.path"
+                      (input)="patchAssertion(a.id, { path: $any($event.target).value })"
+                    />
+                  }
+
+                  @case ('jsonPathEquals') {
+                    <input
+                      class="assertion-input mono"
+                      placeholder="$.path.to.value"
+                      [value]="a.path"
+                      (input)="patchAssertion(a.id, { path: $any($event.target).value })"
+                    />
+                    <span class="assertion-equals">=</span>
+                    <input
+                      class="assertion-input"
+                      placeholder="Expected value"
+                      [value]="a.expected"
+                      (input)="patchAssertion(a.id, { expected: $any($event.target).value })"
+                    />
+                  }
+
+                }
+              </div>
+
+              <!-- Remove -->
+              <button
+                mat-icon-button
+                class="assertion-remove-btn"
+                matTooltip="Remove"
+                (click)="removeAssertion(a.id)"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+
+            </div>
+          }
+
+          @if (assertions().length === 0) {
+            <div class="assertions-empty">
+              <mat-icon>rule</mat-icon>
+              <span>No assertions — click <strong>Add Assertion</strong> to get started.</span>
+            </div>
+          }
+        </div>
+
+        <div class="assertions-footer">
+          <button mat-button class="add-assertion-btn" (click)="addAssertion()">
+            <mat-icon>add</mat-icon>
+            Add Assertion
+          </button>
+        </div>
+
+      </div>
+    </mat-tab>
+
   </mat-tab-group>
 
 </div>

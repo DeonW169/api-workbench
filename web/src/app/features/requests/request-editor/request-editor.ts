@@ -19,6 +19,11 @@ import {
   HttpMethod,
   KeyValueItem,
 } from '../../../shared/models/api-request.model';
+import {
+  Assertion,
+  ASSERTION_TYPES,
+  AssertionType,
+} from '../../../shared/models/assertion.model';
 
 interface BodyTypeOption {
   value: BodyType;
@@ -68,9 +73,13 @@ export class RequestEditor {
   readonly apiKeyValue = signal('');
   readonly apiKeyLocation = signal<'header' | 'query'>('header');
 
+  // Assertions
+  readonly assertions = signal<Assertion[]>([]);
+
   // ── Constants ─────────────────────────────────────────────────────────────
 
   readonly methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+  readonly assertionTypes = ASSERTION_TYPES;
 
   readonly bodyTypes: BodyTypeOption[] = [
     { value: 'none',                  label: 'None' },
@@ -113,6 +122,11 @@ export class RequestEditor {
     return `Auth · ${label}`;
   });
 
+  readonly assertionsLabel = computed(() => {
+    const count = this.assertions().filter(a => a.enabled).length;
+    return count ? `Assertions (${count})` : 'Assertions';
+  });
+
   readonly bodyPlaceholder = computed(() => {
     switch (this.bodyType()) {
       case 'json': return '{\n  "key": "value"\n}';
@@ -153,6 +167,8 @@ export class RequestEditor {
     bodyRaw: this.bodyRaw(),
     bodyFormFields: this.bodyFormFields(),
     auth: this.authConfig(),
+    assertions: this.assertions(),
+    variables: [],
     createdAt: this._createdAt,
     updatedAt: new Date().toISOString(),
   }));
@@ -203,6 +219,7 @@ export class RequestEditor {
         this.apiKeyName.set(req.auth.apiKeyKey ?? '');
         this.apiKeyValue.set(req.auth.apiKeyValue ?? '');
         this.apiKeyLocation.set(req.auth.apiKeyLocation ?? 'header');
+        this.assertions.set([...(req.assertions ?? [])]);
       });
     });
 
@@ -283,5 +300,44 @@ export class RequestEditor {
       );
     };
     reader.readAsDataURL(file);
+  }
+
+  // ── Assertion mutations ───────────────────────────────────────────────────
+
+  addAssertion(): void {
+    const a: Assertion = { id: crypto.randomUUID(), enabled: true, type: 'statusEquals', expected: 200 };
+    this.assertions.update(list => [...list, a]);
+  }
+
+  removeAssertion(id: string): void {
+    this.assertions.update(list => list.filter(a => a.id !== id));
+  }
+
+  setAssertionEnabled(id: string, enabled: boolean): void {
+    this.assertions.update(list =>
+      list.map(a => a.id === id ? { ...a, enabled } as Assertion : a),
+    );
+  }
+
+  setAssertionType(id: string, type: AssertionType): void {
+    this.assertions.update(list =>
+      list.map(a => {
+        if (a.id !== id) return a;
+        const base = { id: a.id, enabled: a.enabled };
+        switch (type) {
+          case 'statusEquals':   return { ...base, type, expected: 200 };
+          case 'bodyContains':   return { ...base, type, substring: '' };
+          case 'headerExists':   return { ...base, type, header: '' };
+          case 'jsonPathExists': return { ...base, type, path: '$.' };
+          case 'jsonPathEquals': return { ...base, type, path: '$.', expected: '' };
+        }
+      }),
+    );
+  }
+
+  patchAssertion(id: string, fields: Record<string, unknown>): void {
+    this.assertions.update(list =>
+      list.map(a => a.id === id ? { ...a, ...fields } as Assertion : a),
+    );
   }
 }

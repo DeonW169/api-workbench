@@ -224,6 +224,43 @@
       </div>
     </mat-tab>
 
+    <!-- Assertions -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Assertions
+        @if (assertionSummary(); as s) {
+          @if (s.total > 0) {
+            @if (s.failed > 0) {
+              <span class="tab-count assertions-failed">{{ s.failed }}</span>
+            } @else {
+              <span class="tab-count assertions-passed">{{ s.passed }}</span>
+            }
+          }
+        }
+      </ng-template>
+
+      <div class="tab-content">
+        @if (isLoading()) {
+          <div class="pane-loading"><mat-spinner diameter="36" /></div>
+        } @else if (!assertionSummary() || assertionSummary()!.total === 0) {
+          <div class="pane-idle">
+            <mat-icon>rule</mat-icon>
+            <span>No assertions configured</span>
+          </div>
+        } @else {
+          <div class="assertions-results">
+            @for (result of assertionSummary()!.results; track result.assertion.id) {
+              <div class="assertion-result" [class.passed]="result.passed" [class.failed]="!result.passed">
+                <mat-icon class="result-icon">{{ result.passed ? 'check_circle' : 'cancel' }}</mat-icon>
+                <span class="result-label">{{ autoLabel(result.assertion) }}</span>
+                <span class="result-message">{{ result.message }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </mat-tab>
+
     <!-- Raw -->
     <mat-tab label="Raw">
       <div class="tab-content">

@@ -8,6 +8,7 @@ import { GlobalsService } from './globals';
 import { HistoryService } from './history';
 import { TabsService } from './tabs';
 import { VariableResolverService, buildVarMap } from '../utils/variable-resolver.service';
+import { AssertionService } from '../utils/assertion.service';
 import { RunnerApiService } from '../api/runner-api.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +20,7 @@ export class WorkspaceService {
   private readonly globalsService = inject(GlobalsService);
   private readonly historyService = inject(HistoryService);
   private readonly resolver = inject(VariableResolverService);
+  private readonly assertionService = inject(AssertionService);
   private readonly runner = inject(RunnerApiService);
 
   // ── State (derived from TabsService) ──────────────────────────────────────
@@ -48,6 +50,9 @@ export class WorkspaceService {
 
   /** Human-readable error from the last failed execution, or null. */
   readonly errorMessage = computed(() => this.tabsService.activeTab()?.errorMessage ?? null);
+
+  /** Assertion results from the last execution for the active tab, or null. */
+  readonly assertionSummary = computed(() => this.tabsService.activeTab()?.assertionSummary ?? null);
 
   /**
    * A fully-resolved clone of the current request for the preview panel.
@@ -130,7 +135,8 @@ export class WorkspaceService {
       const withAuth = applyAuth(resolved);
 
       const response = await firstValueFrom(this.runner.execute(withAuth));
-      this.tabsService.setTabResponse(tabId, response, null);
+      const assertionSummary = this.assertionService.evaluate(request.assertions ?? [], response);
+      this.tabsService.setTabResponse(tabId, response, null, assertionSummary);
 
       const historyItem: HistoryItem = {
         id: crypto.randomUUID(),
