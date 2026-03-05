@@ -11,6 +11,7 @@ import { EnvironmentSelector } from '../../features/environments/environment-sel
 import { EnvironmentsList } from '../../features/environments/environments-list/environments-list';
 import { RequestTabs } from '../../features/requests/request-tabs/request-tabs';
 import { RequestEditor } from '../../features/requests/request-editor/request-editor';
+import { ResolvedPreviewPanel } from '../../features/requests/resolved-preview/resolved-preview';
 import { ResponseViewer } from '../../features/responses/response-viewer/response-viewer';
 import { SettingsMenu } from './settings-menu/settings-menu';
 import { CollectionsService } from '../../core/state/collections';
@@ -39,6 +40,7 @@ type SidenavSection = 'collections' | 'history' | 'environments';
     EnvironmentsList,
     RequestTabs,
     RequestEditor,
+    ResolvedPreviewPanel,
     ResponseViewer,
     SettingsMenu,
   ],

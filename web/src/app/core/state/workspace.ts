@@ -49,6 +49,35 @@ export class WorkspaceService {
   /** Human-readable error from the last failed execution, or null. */
   readonly errorMessage = computed(() => this.tabsService.activeTab()?.errorMessage ?? null);
 
+  /**
+   * A fully-resolved clone of the current request for the preview panel.
+   * Uses the same variable merge order as execute() but has no side effects.
+   * Returns null when no request is loaded.
+   */
+  readonly resolvedPreview = computed(() => {
+    const request = this.currentRequest();
+    if (!request) return null;
+    const globalsMap    = this.globalsService.varMap();
+    const collectionMap = this.collectionsService.varMapForCollection(request.collectionId);
+    const envMap        = this.envService.activeVarMap();
+    const requestMap    = buildVarMap(request.variables ?? []);
+    return this.resolver.resolveForExecution(request, globalsMap, collectionMap, envMap, requestMap);
+  });
+
+  /**
+   * The set of {{variable}} names that appear in the current request but
+   * cannot be satisfied by any variable scope. Used for preview warnings.
+   */
+  readonly unresolvedVarNames = computed<Set<string>>(() => {
+    const request = this.currentRequest();
+    if (!request) return new Set<string>();
+    const globalsMap    = this.globalsService.varMap();
+    const collectionMap = this.collectionsService.varMapForCollection(request.collectionId);
+    const envMap        = this.envService.activeVarMap();
+    const requestMap    = buildVarMap(request.variables ?? []);
+    return this.resolver.unresolvedVars(request, globalsMap, collectionMap, envMap, requestMap);
+  });
+
   // ── Mutations ─────────────────────────────────────────────────────────────
 
   /** Called by the editor on every request state change. */

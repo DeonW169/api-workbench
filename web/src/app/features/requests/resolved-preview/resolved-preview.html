@@ -1,0 +1,78 @@
+<!-- ── Toggle bar ─────────────────────────────────────────────────────────── -->
+<button class="preview-header" (click)="toggle()">
+  <mat-icon class="expand-icon">
+    {{ expanded() ? 'expand_more' : 'chevron_right' }}
+  </mat-icon>
+  <span class="header-label">Resolved Preview</span>
+
+  @if (unresolved().size > 0) {
+    <span class="unresolved-badge">
+      {{ unresolved().size }} unresolved
+    </span>
+  }
+</button>
+
+<!-- ── Content ───────────────────────────────────────────────────────────── -->
+@if (expanded()) {
+  @if (resolved(); as r) {
+    <div class="preview-content">
+
+      <!-- URL -->
+      <div class="preview-section">
+        <div class="preview-label">URL</div>
+        <div class="preview-value mono" [innerHTML]="r.url | highlightVars"></div>
+      </div>
+
+      <!-- Query params -->
+      @if (enabledParams().length > 0) {
+        <div class="preview-section">
+          <div class="preview-label">Query Params</div>
+          @for (p of enabledParams(); track p.key) {
+            <div class="preview-kv">
+              <span class="kv-key mono">{{ p.key }}</span>
+              <span class="kv-sep">=</span>
+              <span class="kv-value mono" [innerHTML]="p.value | highlightVars"></span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Headers -->
+      @if (enabledHeaders().length > 0) {
+        <div class="preview-section">
+          <div class="preview-label">Headers</div>
+          @for (h of enabledHeaders(); track h.key) {
+            <div class="preview-kv">
+              <span class="kv-key mono">{{ h.key }}</span>
+              <span class="kv-sep">:</span>
+              <span class="kv-value mono" [innerHTML]="h.value | highlightVars"></span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Body -->
+      @if (hasBody()) {
+        <div class="preview-section">
+          <div class="preview-label">Body</div>
+          <pre class="preview-body-text" [innerHTML]="r.bodyRaw | highlightVars"></pre>
+        </div>
+      }
+
+      <!-- Unresolved variable list -->
+      @if (unresolvedList().length > 0) {
+        <div class="preview-section unresolved-section">
+          <div class="preview-label">Could not resolve</div>
+          <div class="unresolved-list">
+            @for (name of unresolvedList(); track name) {
+              <code class="unresolved-chip">{{ '{{' + name + '}}' }}</code>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  } @else {
+    <div class="preview-empty">No request loaded.</div>
+  }
+}

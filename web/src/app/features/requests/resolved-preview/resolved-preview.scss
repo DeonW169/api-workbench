@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+// ── Toggle bar ────────────────────────────────────────────────────────────────
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: left;
+  user-select: none;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+  }
+}
+
+.expand-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.header-label {
+  flex: 1;
+}
+
+.unresolved-badge {
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--mat-sys-error) 14%, transparent);
+  color: var(--mat-sys-error);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+// ── Scrollable content ────────────────────────────────────────────────────────
+
+.preview-content {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 12px 12px;
+}
+
+.preview-empty {
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.6;
+}
+
+// ── Section ───────────────────────────────────────────────────────────────────
+
+.preview-section {
+  margin-top: 10px;
+
+  &:first-child {
+    margin-top: 6px;
+  }
+}
+
+.preview-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mat-sys-on-surface-variant);
+  margin-bottom: 4px;
+}
+
+// ── Value rows ────────────────────────────────────────────────────────────────
+
+.mono {
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.78rem;
+}
+
+.preview-value {
+  color: var(--mat-sys-on-surface);
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.preview-kv {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 3px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  flex-wrap: wrap;
+}
+
+.kv-key {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.kv-sep {
+  color: var(--mat-sys-outline);
+  flex-shrink: 0;
+}
+
+.kv-value {
+  color: var(--mat-sys-on-surface);
+  word-break: break-all;
+}
+
+.preview-body-text {
+  margin: 0;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--mat-sys-on-surface);
+}
+
+// ── Unresolved list ───────────────────────────────────────────────────────────
+
+.unresolved-section {
+  padding-top: 6px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  margin-top: 12px;
+}
+
+.unresolved-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.unresolved-chip {
+  background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+  color: var(--mat-sys-error);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.72rem;
+}
+
+// ── Highlighted unresolved tokens (from [innerHTML] pipe output) ──────────────
+
+:host ::ng-deep .unresolved-var {
+  background: color-mix(in srgb, var(--mat-sys-error) 14%, transparent);
+  color: var(--mat-sys-error);
+  border-radius: 2px;
+  padding: 0 2px;
+}

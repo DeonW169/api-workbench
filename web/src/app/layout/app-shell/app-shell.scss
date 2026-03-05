@@ -158,3 +158,10 @@
   overflow: hidden;
   min-width: 0;
 }
+
+// The request editor must flex-grow so the preview panel can dock at the bottom.
+.editor-pane__editor {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto !important; // overrides height: 100% set on the component :host
+}

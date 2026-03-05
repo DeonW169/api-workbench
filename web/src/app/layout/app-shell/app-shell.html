@@ -101,10 +101,15 @@
       <div class="work-area">
         <section class="editor-pane">
           <app-request-editor
+            class="editor-pane__editor"
             [requestToLoad]="workspace.requestToLoad()"
             [isLoading]="workspace.isLoading()"
             (requestChange)="workspace.setRequest($event)"
             (sendClicked)="workspace.execute()"
+          />
+          <app-resolved-preview
+            [resolved]="workspace.resolvedPreview()"
+            [unresolved]="workspace.unresolvedVarNames()"
           />
         </section>
 

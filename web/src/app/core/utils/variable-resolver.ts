@@ -21,8 +21,9 @@ export type ResolvedRequest = ApiRequest;
  * Matches Postman-style {{variableName}} placeholders.
  * Allows optional whitespace around the name; names may contain
  * word chars, dots, and hyphens (e.g. {{base.url}}, {{auth-token}}).
+ * An optional leading $ supports dynamic variables (e.g. {{$uuid}}).
  */
-const PLACEHOLDER = /\{\{(\s*[\w.-]+\s*)\}\}/g;
+const PLACEHOLDER = /\{\{(\s*\$?[\w.-]+\s*)\}\}/g;
 
 // ── Core primitives ───────────────────────────────────────────────────────────
 

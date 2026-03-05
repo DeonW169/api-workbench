@@ -11,10 +11,11 @@ import {
   resolveString,
   findUnresolvedVars,
 } from './variable-resolver';
+import { buildDynamicVarMap, DYNAMIC_VAR_NAMES, DynamicVarName } from './dynamic-vars';
 
 // Re-export so callers only need to import from this service.
-export type { VariableMap, ResolvedRequest };
-export { buildVarMap };
+export type { VariableMap, ResolvedRequest, DynamicVarName };
+export { buildVarMap, DYNAMIC_VAR_NAMES };
 
 /**
  * Angular service that exposes variable resolution with an ergonomic API.
@@ -58,7 +59,8 @@ export class VariableResolverService {
    *                    Typically: resolveForExecution(req, envMap, requestOverrides?)
    */
   resolveForExecution(request: ApiRequest, ...varSources: VariableMap[]): ResolvedRequest {
-    return resolveRequest(request, mergeVars(...varSources));
+    // Dynamic vars are lowest priority — any user-defined var with the same name wins.
+    return resolveRequest(request, mergeVars(buildDynamicVarMap(), ...varSources));
   }
 
   /**
@@ -83,6 +85,7 @@ export class VariableResolverService {
    *   if (missing.size > 0) showWarning([...missing]);
    */
   unresolvedVars(request: ApiRequest, ...varSources: VariableMap[]): Set<string> {
-    return findUnresolvedVars(request, mergeVars(...varSources));
+    // Include dynamic vars so $-prefixed placeholders are never flagged as unresolved.
+    return findUnresolvedVars(request, mergeVars(buildDynamicVarMap(), ...varSources));
   }
 }
