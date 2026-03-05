@@ -15,6 +15,10 @@ import {
   CollectionVarsEditor,
   CollectionVarsEditorData,
 } from '../collection-vars-editor/collection-vars-editor';
+import {
+  CollectionRunnerDialog,
+  CollectionRunnerDialogData,
+} from '../collection-runner/collection-runner-dialog';
 
 type EditTarget = 'collection' | 'folder' | 'request';
 
@@ -115,6 +119,28 @@ export class CollectionsTree {
     this.dialog.open<CollectionVarsEditor, CollectionVarsEditorData>(
       CollectionVarsEditor,
       { data: { collection: coll }, width: '640px', maxHeight: '80vh' },
+    );
+  }
+
+  // ── Collection runner ──────────────────────────────────────────────────────
+
+  openRunnerForCollection(coll: Collection, event: MouseEvent): void {
+    event.stopPropagation();
+    this.dialog.open<CollectionRunnerDialog, CollectionRunnerDialogData>(
+      CollectionRunnerDialog,
+      { data: { collectionId: coll.id, name: coll.name }, width: '700px', maxHeight: '80vh' },
+    );
+  }
+
+  openRunnerForFolder(coll: Collection, folder: Folder, event: MouseEvent): void {
+    event.stopPropagation();
+    this.dialog.open<CollectionRunnerDialog, CollectionRunnerDialogData>(
+      CollectionRunnerDialog,
+      {
+        data: { collectionId: coll.id, folderId: folder.id, name: folder.name },
+        width: '700px',
+        maxHeight: '80vh',
+      },
     );
   }
 

@@ -1,0 +1,368 @@
+// ── Method / status colour tokens ─────────────────────────────────────────────
+:host {
+  --method-get:    #4db6ac;
+  --method-post:   #81c784;
+  --method-put:    #64b5f6;
+  --method-patch:  #ffb74d;
+  --method-delete: #ef9a9a;
+
+  --pass-color: #66bb6a;
+  --fail-color: #ffa726;
+}
+
+// ── Dialog title ──────────────────────────────────────────────────────────────
+
+.runner-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 1.05rem;
+}
+
+.runner-scope {
+  font-weight: 400;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
+}
+
+// ── Dialog content layout ─────────────────────────────────────────────────────
+
+.runner-content {
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden !important;
+  padding: 0 !important;
+  min-height: 160px;
+
+  // Ensure mat-dialog-content scrolls via the results list, not itself
+  ::ng-deep & {
+    max-height: none;
+  }
+}
+
+// ── Config panel ──────────────────────────────────────────────────────────────
+
+.config-panel {
+  padding: 20px 24px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.request-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0;
+
+  strong {
+    color: var(--mat-sys-on-surface);
+    font-size: 1.15rem;
+  }
+
+  .count-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+    opacity: 0.55;
+  }
+}
+
+.config-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 12px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+}
+
+.option-label {
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface);
+}
+
+.delay-input {
+  width: 72px;
+  padding: 4px 8px;
+  background: var(--mat-sys-surface-container-highest);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 4px;
+  color: var(--mat-sys-on-surface);
+  font-size: 0.875rem;
+  text-align: right;
+  outline: none;
+
+  &:focus { border-color: var(--mat-sys-primary); }
+
+  // Hide number spin arrows
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button { -webkit-appearance: none; }
+  -moz-appearance: textfield;
+}
+
+.delay-unit {
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ── Running header ────────────────────────────────────────────────────────────
+
+.running-header {
+  padding: 16px 24px 10px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  mat-progress-bar {
+    flex: 1;
+    border-radius: 2px;
+  }
+}
+
+.progress-label {
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+  min-width: 52px;
+  text-align: right;
+}
+
+.current-req {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.current-req-name {
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Done: summary bar ─────────────────────────────────────────────────────────
+
+.summary-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 24px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+  }
+
+  &.passed-chip {
+    color: var(--pass-color);
+    background: color-mix(in srgb, var(--pass-color) 14%, transparent);
+  }
+
+  &.failed-chip {
+    color: var(--fail-color);
+    background: color-mix(in srgb, var(--fail-color) 14%, transparent);
+  }
+
+  &.neutral-chip {
+    color: var(--mat-sys-on-surface-variant);
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  }
+}
+
+.summary-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  margin-left: auto;
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+    opacity: 0.7;
+  }
+}
+
+.stopped-early-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--fail-color);
+  background: color-mix(in srgb, var(--fail-color) 10%, transparent);
+  padding: 2px 8px;
+  border-radius: 10px;
+
+  mat-icon {
+    font-size: 13px;
+    height: 13px;
+    width: 13px;
+  }
+}
+
+// ── Results list ──────────────────────────────────────────────────────────────
+
+.results-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
+  transition: background 80ms;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 3%, transparent);
+  }
+}
+
+.result-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  flex-shrink: 0;
+
+  .passed & { color: var(--pass-color); }
+  .failed & { color: var(--fail-color); }
+}
+
+.result-name {
+  flex: 1;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.result-error {
+  font-size: 0.74rem;
+  color: var(--fail-color);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  cursor: default;
+}
+
+.result-status {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Roboto Mono', monospace;
+  padding: 1px 6px;
+  border-radius: 3px;
+
+  &[data-ok='true'] {
+    color: var(--pass-color);
+    background: color-mix(in srgb, var(--pass-color) 12%, transparent);
+  }
+
+  &[data-ok='false'] {
+    color: var(--fail-color);
+    background: color-mix(in srgb, var(--fail-color) 12%, transparent);
+  }
+}
+
+.result-duration {
+  flex-shrink: 0;
+  font-size: 0.73rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.65;
+  white-space: nowrap;
+  min-width: 40px;
+  text-align: right;
+}
+
+.result-assertions {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 9px;
+  white-space: nowrap;
+  cursor: default;
+
+  &.asserts-ok {
+    color: var(--pass-color);
+    background: color-mix(in srgb, var(--pass-color) 12%, transparent);
+  }
+
+  &.asserts-fail {
+    color: var(--fail-color);
+    background: color-mix(in srgb, var(--fail-color) 12%, transparent);
+  }
+}
+
+.results-empty {
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.5;
+}
+
+// ── Method badge ──────────────────────────────────────────────────────────────
+
+.method-badge {
+  flex-shrink: 0;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  min-width: 44px;
+  text-align: center;
+  padding: 1px 4px;
+  border-radius: 3px;
+
+  &[data-method='GET']    { color: var(--method-get);    background: color-mix(in srgb, var(--method-get)    12%, transparent); }
+  &[data-method='POST']   { color: var(--method-post);   background: color-mix(in srgb, var(--method-post)   12%, transparent); }
+  &[data-method='PUT']    { color: var(--method-put);    background: color-mix(in srgb, var(--method-put)    12%, transparent); }
+  &[data-method='PATCH']  { color: var(--method-patch);  background: color-mix(in srgb, var(--method-patch)  12%, transparent); }
+  &[data-method='DELETE'] { color: var(--method-delete); background: color-mix(in srgb, var(--method-delete) 12%, transparent); }
+}

@@ -1,0 +1,175 @@
+<h2 mat-dialog-title class="runner-title">
+  @switch (phase()) {
+    @case ('config')  { Run }
+    @case ('running') { Running }
+    @case ('done')    { Results }
+  }
+  <span class="runner-scope">— {{ scopeName }}</span>
+</h2>
+
+<mat-dialog-content class="runner-content">
+
+  <!-- ── Config ─────────────────────────────────────────────────────────── -->
+  @if (phase() === 'config') {
+    <div class="config-panel">
+      <p class="request-count">
+        <mat-icon class="count-icon">list_alt</mat-icon>
+        <strong>{{ requestCount() }}</strong>
+        request{{ requestCount() === 1 ? '' : 's' }} will be run
+      </p>
+
+      <mat-divider />
+
+      <div class="config-options">
+        <label class="option-row">
+          <mat-checkbox
+            [checked]="stopOnFailure()"
+            (change)="stopOnFailure.set($event.checked)"
+          >
+            Stop on first failure
+          </mat-checkbox>
+        </label>
+
+        <div class="option-row delay-row">
+          <span class="option-label">Delay between requests</span>
+          <input
+            class="delay-input"
+            type="number"
+            min="0"
+            step="100"
+            [value]="delayMs()"
+            (input)="setDelayMs($event)"
+          />
+          <span class="delay-unit">ms</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Running header ─────────────────────────────────────────────────── -->
+  @if (phase() === 'running') {
+    <div class="running-header">
+      <div class="progress-row">
+        <mat-progress-bar mode="determinate" [value]="progress()" />
+        <span class="progress-label">{{ results().length }} / {{ total() }}</span>
+      </div>
+
+      @if (currentRequest(); as req) {
+        <div class="current-req">
+          <span class="method-badge" [attr.data-method]="req.method">{{ req.method }}</span>
+          <span class="current-req-name">{{ req.name }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Done summary ────────────────────────────────────────────────────── -->
+  @if (phase() === 'done') {
+    @if (summary(); as s) {
+      <div class="summary-bar">
+        <span class="summary-chip passed-chip">
+          <mat-icon>check_circle</mat-icon>{{ s.passed }} passed
+        </span>
+        <span class="summary-chip" [class.failed-chip]="s.failed > 0" [class.neutral-chip]="s.failed === 0">
+          <mat-icon>cancel</mat-icon>{{ s.failed }} failed
+        </span>
+        @if (s.skipped > 0) {
+          <span class="summary-chip neutral-chip">
+            <mat-icon>skip_next</mat-icon>{{ s.skipped }} skipped
+          </span>
+        }
+        <span class="summary-duration">
+          <mat-icon>schedule</mat-icon>{{ formatDuration(s.totalDurationMs) }}
+        </span>
+        @if (s.stoppedEarly) {
+          <span class="stopped-early-badge">
+            <mat-icon>warning</mat-icon>Stopped early
+          </span>
+        }
+      </div>
+    }
+  }
+
+  <!-- ── Results list (running + done) ──────────────────────────────────── -->
+  @if (phase() !== 'config') {
+    <div class="results-list">
+
+      @for (item of results(); track item.request.id) {
+        <div
+          class="result-row"
+          [class.passed]="item.passed"
+          [class.failed]="!item.passed"
+        >
+          <mat-icon class="result-icon">
+            {{ item.passed ? 'check_circle' : (item.error ? 'error_outline' : 'cancel') }}
+          </mat-icon>
+
+          <span class="method-badge" [attr.data-method]="item.request.method">
+            {{ item.request.method }}
+          </span>
+
+          <span class="result-name">{{ item.request.name }}</span>
+
+          @if (item.error) {
+            <span class="result-error" [matTooltip]="item.error">{{ item.error }}</span>
+          } @else {
+            <span class="result-status" [attr.data-ok]="item.response!.ok">
+              {{ item.response!.status }}
+            </span>
+            <span class="result-duration">{{ formatDuration(item.durationMs) }}</span>
+            @if (item.assertionSummary) {
+              <span
+                class="result-assertions"
+                [class.asserts-ok]="item.assertionSummary.failed === 0"
+                [class.asserts-fail]="item.assertionSummary.failed > 0"
+                [matTooltip]="item.assertionSummary.failed + ' failed, ' + item.assertionSummary.passed + ' passed'"
+              >
+                {{ item.assertionSummary.passed }}/{{ item.assertionSummary.total }}
+              </span>
+            }
+          }
+        </div>
+      }
+
+      @if (phase() === 'running' && results().length === 0) {
+        <div class="results-empty">Waiting for first response…</div>
+      }
+
+      @if (phase() === 'done' && results().length === 0) {
+        <div class="results-empty">No requests were executed.</div>
+      }
+
+    </div>
+  }
+
+</mat-dialog-content>
+
+<!-- ── Actions ────────────────────────────────────────────────────────────── -->
+<mat-dialog-actions align="end">
+  @switch (phase()) {
+    @case ('config') {
+      <button mat-button (click)="close()">Cancel</button>
+      <button
+        mat-flat-button
+        [disabled]="requestCount() === 0"
+        (click)="run()"
+      >
+        <mat-icon>play_arrow</mat-icon>
+        Run {{ requestCount() }} request{{ requestCount() === 1 ? '' : 's' }}
+      </button>
+    }
+    @case ('running') {
+      <button mat-stroked-button (click)="stop()">
+        <mat-icon>stop</mat-icon>
+        Stop
+      </button>
+    }
+    @case ('done') {
+      <button mat-button (click)="reset()">
+        <mat-icon>replay</mat-icon>
+        Run again
+      </button>
+      <button mat-flat-button (click)="close()">Close</button>
+    }
+  }
+</mat-dialog-actions>
