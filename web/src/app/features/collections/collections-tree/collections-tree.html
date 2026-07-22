@@ -169,6 +169,18 @@
             <span class="row-actions" (click)="$event.stopPropagation()">
               <button
                 mat-icon-button class="action-btn"
+                matTooltip="Move up (changes run order)" matTooltipPosition="above"
+                [disabled]="isFirst(req)"
+                (click)="moveRequest(req.id, -1, $event)"
+              ><mat-icon>arrow_upward</mat-icon></button>
+              <button
+                mat-icon-button class="action-btn"
+                matTooltip="Move down (changes run order)" matTooltipPosition="above"
+                [disabled]="isLast(req)"
+                (click)="moveRequest(req.id, 1, $event)"
+              ><mat-icon>arrow_downward</mat-icon></button>
+              <button
+                mat-icon-button class="action-btn"
                 matTooltip="Rename" matTooltipPosition="above"
                 (click)="startRename('request', req.id, req.name, $event)"
               ><mat-icon>edit</mat-icon></button>
@@ -212,6 +224,18 @@
         }
 
         <span class="row-actions" (click)="$event.stopPropagation()">
+          <button
+            mat-icon-button class="action-btn"
+            matTooltip="Move up (changes run order)" matTooltipPosition="above"
+            [disabled]="isFirst(req)"
+            (click)="moveRequest(req.id, -1, $event)"
+          ><mat-icon>arrow_upward</mat-icon></button>
+          <button
+            mat-icon-button class="action-btn"
+            matTooltip="Move down (changes run order)" matTooltipPosition="above"
+            [disabled]="isLast(req)"
+            (click)="moveRequest(req.id, 1, $event)"
+          ><mat-icon>arrow_downward</mat-icon></button>
           <button
             mat-icon-button class="action-btn"
             matTooltip="Rename" matTooltipPosition="above"
@@ -263,6 +287,18 @@
       }
 
       <span class="row-actions" (click)="$event.stopPropagation()">
+        <button
+          mat-icon-button class="action-btn"
+          matTooltip="Move up (changes run order)" matTooltipPosition="above"
+          [disabled]="isFirst(req)"
+          (click)="moveRequest(req.id, -1, $event)"
+        ><mat-icon>arrow_upward</mat-icon></button>
+        <button
+          mat-icon-button class="action-btn"
+          matTooltip="Move down (changes run order)" matTooltipPosition="above"
+          [disabled]="isLast(req)"
+          (click)="moveRequest(req.id, 1, $event)"
+        ><mat-icon>arrow_downward</mat-icon></button>
         <button
           mat-icon-button class="action-btn"
           matTooltip="Rename" matTooltipPosition="above"

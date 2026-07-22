@@ -19,7 +19,7 @@ export function applyAuth(request: ApiRequest): ApiRequest {
   }
 
   if (auth.type === 'basic') {
-    const encoded = btoa(`${auth.username ?? ''}:${auth.password ?? ''}`);
+    const encoded = base64Utf8(`${auth.username ?? ''}:${auth.password ?? ''}`);
     return {
       ...request,
       headers: [
@@ -49,4 +49,18 @@ export function applyAuth(request: ApiRequest): ApiRequest {
   }
 
   return request;
+}
+
+/**
+ * Base64-encode a string that may contain non-latin1 characters.
+ *
+ * Bare `btoa` throws InvalidCharacterError on any code point above U+00FF, so
+ * accented or non-Latin credentials would abort the request before it was sent.
+ * Encoding to UTF-8 bytes first matches what servers expect (RFC 7617).
+ */
+function base64Utf8(input: string): string {
+  const bytes = new TextEncoder().encode(input);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
 }

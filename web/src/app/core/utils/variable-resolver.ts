@@ -1,4 +1,4 @@
-import { ApiRequest } from '../../shared/models/api-request.model';
+import { ApiRequest, AuthConfig } from '../../shared/models/api-request.model';
 import { EnvironmentModel } from '../../shared/models/environment.model';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -54,6 +54,31 @@ export function mergeVars(...sources: VariableMap[]): VariableMap {
 }
 
 /**
+ * The auth credential fields that may contain {{placeholders}}.
+ * `type` and `apiKeyLocation` are enums, never variable expressions.
+ */
+const AUTH_RESOLVABLE_FIELDS = [
+  'bearerToken',
+  'username',
+  'password',
+  'apiKeyKey',
+  'apiKeyValue',
+] as const satisfies readonly (keyof AuthConfig)[];
+
+/**
+ * Produce a variable-resolved clone of an auth config.
+ * Undefined fields stay undefined so `applyAuth`'s truthiness checks still work.
+ */
+export function resolveAuth(auth: AuthConfig, vars: VariableMap): AuthConfig {
+  const resolved: AuthConfig = { ...auth };
+  for (const field of AUTH_RESOLVABLE_FIELDS) {
+    const value = auth[field];
+    if (typeof value === 'string') resolved[field] = resolveString(value, vars);
+  }
+  return resolved;
+}
+
+/**
  * Produce a fully-resolved clone of an ApiRequest.
  * The original request is **never mutated**.
  *
@@ -63,6 +88,7 @@ export function mergeVars(...sources: VariableMap[]): VariableMap {
  *   - headers[].value          (keys are kept literal)
  *   - bodyRaw
  *   - bodyFormFields[].value   (text fields only; file fields are passed through)
+ *   - auth credentials         (token / username / password / api key)
  */
 export function resolveRequest(request: ApiRequest, vars: VariableMap): ResolvedRequest {
   const r = (s: string) => resolveString(s, vars);
@@ -75,6 +101,7 @@ export function resolveRequest(request: ApiRequest, vars: VariableMap): Resolved
     bodyFormFields: request.bodyFormFields.map(f =>
       f.type === 'file' ? f : { ...f, value: r(f.value) },
     ),
+    auth:           resolveAuth(request.auth, vars),
   };
 }
 
@@ -135,6 +162,10 @@ export function findUnresolvedVars(request: ApiRequest, vars: VariableMap): Set<
     request.bodyRaw,
     // Text form fields only — file fields contain filenames, not variable expressions
     ...request.bodyFormFields.filter(f => f.type === 'text').map(f => f.value),
+    // Auth credentials are resolved too, so unresolved ones must warn as well
+    ...AUTH_RESOLVABLE_FIELDS
+      .map(field => request.auth[field])
+      .filter((v): v is string => typeof v === 'string'),
   ];
 
   const missing = new Set<string>();

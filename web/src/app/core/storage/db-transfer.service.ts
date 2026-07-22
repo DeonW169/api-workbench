@@ -51,10 +51,22 @@ export class DbTransferService {
     const errorKey = await this.validate(file);
     if (errorKey) return ERROR_MESSAGES[errorKey];
 
-    const text = await file.text();
-    const blob = new Blob([text], { type: 'application/json' });
-    const { importInto } = await import('dexie-export-import');
-    await importInto(this.db, blob, { clearTablesBeforeImport: true });
+    try {
+      const text = await file.text();
+      const blob = new Blob([text], { type: 'application/json' });
+      const { importInto } = await import('dexie-export-import');
+      await importInto(this.db, blob, {
+        clearTablesBeforeImport: true,
+        // Backups taken before a schema bump carry an older databaseVersion.
+        // Rejecting those would make every historical backup unrestorable; the
+        // schema only ever adds optional fields, so older data imports cleanly.
+        acceptVersionDiff: true,
+      });
+    } catch (err) {
+      return err instanceof Error
+        ? `Import failed: ${err.message}`
+        : 'Import failed for an unknown reason.';
+    }
 
     // Refresh all in-memory signal stores
     await Promise.all([

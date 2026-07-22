@@ -1,8 +1,8 @@
 import {
-  ApiRequest,
   AuthConfig,
   BodyType,
   FormField,
+  HTTP_METHODS,
   HttpMethod,
   KeyValueItem,
 } from '../../shared/models/api-request.model';
@@ -61,12 +61,17 @@ export function parseCurl(command: string): ParsedCurl | null {
   const formFields:   FormField[] = [];
 
   let authFromUser: AuthConfig | null = null;
+  /** -G / --get: send the accumulated data as a query string on a GET. */
+  let forceGet = false;
 
   let i = 1;
   while (i < tokens.length) {
     const tok = tokens[i];
 
-    if (tok === '-X' || tok === '--request') {
+    if (tok === '-G' || tok === '--get') {
+      forceGet = true;
+
+    } else if (tok === '-X' || tok === '--request') {
       const m = (tokens[++i] ?? '').toUpperCase();
       if (isValidMethod(m)) explicitMethod = m;
 
@@ -86,9 +91,13 @@ export function parseCurl(command: string): ParsedCurl | null {
 
     } else if (tok === '--data-urlencode') {
       const field = tokens[++i] ?? '';
-      // formats: "key=value", "=value" (no key), "value" (bare — treat as body fragment)
-      if (!field.startsWith('@') && !field.includes('@')) {
-        const eq = field.indexOf('=');
+      // cURL formats: "key=value", "=value", "key@filename", "@filename", "value".
+      // Only the @-forms read a file; a bare "@" inside a *value* (an email
+      // address, say) is ordinary data and must not disqualify the field.
+      const eq = field.indexOf('=');
+      const at = field.indexOf('@');
+      const isFileRef = eq === -1 && at !== -1;
+      if (!isFileRef) {
         urlEncFields.push(
           eq !== -1
             ? { key: decodeURIComponent(field.slice(0, eq)), value: field.slice(eq + 1) }
@@ -166,6 +175,32 @@ export function parseCurl(command: string): ParsedCurl | null {
     }
   }
 
+  // ── URL + query params ────────────────────────────────────────────────────
+
+  const { cleanUrl, queryParams } = extractQueryParams(url);
+
+  // ── -G: data is appended to the query string instead of sent as a body ────
+
+  if (forceGet) {
+    const rawData = hasDataRaw ? dataRaw : dataParts.join('&');
+    for (const f of parseUrlEncoded(rawData)) {
+      queryParams.push({ key: f.key, value: f.value, enabled: true });
+    }
+    for (const f of urlEncFields) {
+      if (f.key) queryParams.push({ key: f.key, value: f.value, enabled: true });
+    }
+    return {
+      url: cleanUrl,
+      method: explicitMethod ?? 'GET',
+      headers,
+      queryParams,
+      bodyType: 'none',
+      bodyRaw: '',
+      bodyFormFields: [],
+      auth,
+    };
+  }
+
   // ── Resolve body ───────────────────────────────────────────────────────────
 
   const hasBody      = dataParts.length > 0 || hasDataRaw;
@@ -206,10 +241,6 @@ export function parseCurl(command: string): ParsedCurl | null {
   const method: HttpMethod =
     explicitMethod ?? ((hasBody || hasForm || hasUrlEnc) ? 'POST' : 'GET');
 
-  // ── URL + query params ────────────────────────────────────────────────────
-
-  const { cleanUrl, queryParams } = extractQueryParams(url);
-
   return { url: cleanUrl, method, headers, queryParams, bodyType, bodyRaw, bodyFormFields, auth };
 }
 
@@ -230,7 +261,9 @@ const SKIP_WITH_ARG = new Set([
 ]);
 
 function isValidMethod(s: string): s is HttpMethod {
-  return ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].includes(s);
+  // Derived from the model so the parser can never produce a method the editor
+  // dropdown and the backend DTO do not know about.
+  return (HTTP_METHODS as readonly string[]).includes(s);
 }
 
 function isLikelyJson(s: string): boolean {

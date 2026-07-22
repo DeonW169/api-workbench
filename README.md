@@ -41,6 +41,8 @@ This avoids many of the browser-side CORS and secret-handling limitations you wo
   - `PUT`
   - `PATCH`
   - `DELETE`
+  - `HEAD`
+  - `OPTIONS`
 - Configure:
   - URL
   - query parameters
@@ -78,7 +80,8 @@ This avoids many of the browser-side CORS and secret-handling limitations you wo
 - Collection variables
 - Environment variables
 - Variable precedence support
-- Secret masking in the UI
+- Secret masking in the variables tables
+- Variables resolve in URLs, params, headers, bodies **and auth credentials**
 - Import / export for variables and environments
 - Resolved request preview before execution
 
@@ -101,6 +104,7 @@ Basic test assertions can be attached to requests, including:
 
 ### Collection runner
 - Run all requests in a folder or collection sequentially
+- Explicit run order — arrange requests with the move up / down controls in the tree
 - Stop on failure
 - Delay between requests
 - Summary of run results
@@ -260,6 +264,18 @@ Health check:
 GET http://localhost:3000/api/health
 ```
 
+#### Backend configuration
+
+All optional — the defaults suit local development:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `3000` | Listen port |
+| `HOST` | `127.0.0.1` | Bind address. **Loopback by default:** the runner is unauthenticated, so exposing it on `0.0.0.0` lets anyone on your network proxy requests through your machine. Set it explicitly to opt in. |
+| `CORS_ORIGIN` | `http://localhost:4200` | Comma-separated allowed origins |
+| `BODY_LIMIT` | `52428800` (50 MB) | Max request body, which bounds file-upload size |
+| `RUNNER_TIMEOUT_MS` | `30000` | Outbound request timeout |
+
 ### Start the frontend
 
 From `web/`:
@@ -292,8 +308,10 @@ npm test       # run tests
 ### Backend (`/server/package.json`)
 
 ```bash
-npm run dev    # run Fastify server with tsx watch
-npm run start  # start compiled server entry
+npm run dev        # run Fastify server with tsx watch
+npm run build      # compile TypeScript to dist/
+npm run typecheck  # type-check without emitting
+npm run start      # start compiled server entry (run build first)
 ```
 
 ---
@@ -396,10 +414,14 @@ Use cases:
 - checking a set of regression-critical endpoints quickly
 
 Current direction:
-- sequential execution
+- sequential execution in the order requests appear in the tree
 - stop-on-failure option
 - optional delay between requests
 - assertion-aware summaries
+
+**Not yet supported:** chaining values between steps. A request cannot capture a
+token from an earlier response and feed it into a later one, so a login → fetch
+flow works only when the token is already available as a variable.
 
 ---
 
@@ -416,12 +438,16 @@ Generate a cURL command from the current request for:
 Paste a common cURL command and convert it into an editable request.
 
 Supported common patterns include:
-- `-X`
-- `-H`
-- `--header`
-- `-d`
-- `--data`
-- `--data-raw`
+- `-X` / `--request`
+- `-H` / `--header`
+- `-d` / `--data` / `--data-raw`
+- `--data-urlencode`
+- `-F` / `--form` (text fields; `@file` references are skipped)
+- `-u` / `--user` (basic auth)
+- `-G` / `--get` (data is moved into the query string)
+
+`Authorization: Bearer …` and `Authorization: Basic …` headers are lifted into
+the auth editor rather than left as raw headers.
 
 ---
 
@@ -441,6 +467,11 @@ That means saved data lives in the browser via IndexedDB rather than in a shared
 - not yet team-synced
 - not yet multi-user
 - browser-local data may not move automatically between machines
+- history is capped at the 200 most recent executions
+- variables marked *secret* are masked only in the variables tables. They are
+  stored, exported, and shown resolved in the request preview in plain text —
+  the preview deliberately shows exactly what will be sent, including
+  `Authorization` headers
 
 ---
 

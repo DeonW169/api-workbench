@@ -12,8 +12,14 @@ type FormField = {
     fileContent?: string;
 };
 
+/** Must stay in sync with HttpMethod in web/src/app/shared/models/api-request.model.ts */
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+
+/** Methods fetch refuses to send a body with, plus DELETE which this app treats as bodyless. */
+const BODYLESS_METHODS: readonly HttpMethod[] = ['GET', 'HEAD', 'DELETE'];
+
 type ExecuteRequestDto = {
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    method: HttpMethod;
     url: string;
     queryParams?: KeyValue[];
     headers?: KeyValue[];
@@ -21,6 +27,72 @@ type ExecuteRequestDto = {
     bodyRaw?: string;
     bodyFormFields?: FormField[];
 };
+
+/** Outbound request timeout. Undici would otherwise stall for its 5-minute default. */
+const REQUEST_TIMEOUT_MS = Number(process.env['RUNNER_TIMEOUT_MS'] ?? 30_000);
+
+/**
+ * Flatten response headers into a plain record.
+ *
+ * Set-Cookie is special-cased: a response may carry several, and folding them
+ * into one comma-joined string (as Headers.entries does) corrupts cookies whose
+ * Expires attribute itself contains a comma.
+ */
+function collectHeaders(headers: Headers): Record<string, string> {
+    const record: Record<string, string> = {};
+    for (const [key, value] of headers.entries()) {
+        if (key.toLowerCase() === 'set-cookie') continue;
+        record[key] = value;
+    }
+    const cookies = headers.getSetCookie();
+    if (cookies.length > 0) record['set-cookie'] = cookies.join('\n');
+    return record;
+}
+
+/** Matches application/json plus structured-suffix types like application/vnd.api+json. */
+function isJsonContentType(contentType: string): boolean {
+    return /^application\/([\w.-]+\+)?json\b/i.test(contentType.trim());
+}
+
+/** Translate a fetch rejection into a message that names the actual problem. */
+function describeFetchError(
+    err: unknown,
+    url: URL,
+    timeoutMs: number,
+): { error: string; message: string } {
+    if (err instanceof Error && err.name === 'TimeoutError') {
+        return {
+            error: 'timeout',
+            message: `Request to ${url.host} timed out after ${timeoutMs} ms.`,
+        };
+    }
+
+    // Node surfaces the real reason on `cause` — either directly, or on an
+    // AggregateError when several addresses were tried. `err.message` itself is
+    // always the useless string "fetch failed".
+    const cause = err instanceof Error
+        ? (err.cause as { code?: string; message?: string } | undefined)
+        : undefined;
+    const detail: Record<string, string> = {
+        ECONNREFUSED: `Connection refused by ${url.host}. Is the server running?`,
+        ENOTFOUND: `Cannot resolve host "${url.hostname}". Check the URL for typos.`,
+        ECONNRESET: `Connection to ${url.host} was reset.`,
+        EHOSTUNREACH: `Host ${url.host} is unreachable.`,
+        ETIMEDOUT: `Connection to ${url.host} timed out.`,
+        CERT_HAS_EXPIRED: `The TLS certificate for ${url.host} has expired.`,
+        DEPTH_ZERO_SELF_SIGNED_CERT: `${url.host} uses a self-signed TLS certificate.`,
+        UNABLE_TO_VERIFY_LEAF_SIGNATURE: `Could not verify the TLS certificate for ${url.host}.`,
+    };
+
+    const code = cause?.code;
+    const fallback = cause?.message || (err instanceof Error ? err.message : '');
+    return {
+        error: 'network-error',
+        message:
+            (code && detail[code]) ??
+            (fallback ? `Request to ${url.host} failed: ${fallback}` : 'Request failed.'),
+    };
+}
 
 export async function registerRunnerRoutes(
     app: FastifyInstance,
@@ -30,10 +102,24 @@ export async function registerRunnerRoutes(
         const payload = request.body as ExecuteRequestDto;
 
         // ── URL + query params ────────────────────────────────────────────────
-        const url = new URL(payload.url);
+        // Guarded: an unparseable URL is user error, not a server fault, and
+        // must not surface as an opaque 500.
+        let url: URL;
+        try {
+            url = new URL(payload.url);
+        } catch {
+            return reply.code(400).send({
+                error: 'invalid-url',
+                message: payload.url
+                    ? `"${payload.url}" is not a valid URL. Include a scheme, e.g. https://`
+                    : 'No URL provided.',
+            });
+        }
         for (const param of payload.queryParams ?? []) {
             if (param.enabled === false || !param.key) continue;
-            url.searchParams.set(param.key, param.value ?? '');
+            // append, not set: repeated keys (?tag=a&tag=b) are meaningful and
+            // `set` silently collapsed them to the last value.
+            url.searchParams.append(param.key, param.value ?? '');
         }
 
         // ── Request headers ───────────────────────────────────────────────────
@@ -47,8 +133,7 @@ export async function registerRunnerRoutes(
         const init: RequestInit = { method: payload.method, headers };
 
         const hasBody =
-            payload.method !== 'GET' &&
-            payload.method !== 'DELETE' &&
+            !BODYLESS_METHODS.includes(payload.method) &&
             payload.bodyType &&
             payload.bodyType !== 'none';
 
@@ -102,11 +187,19 @@ export async function registerRunnerRoutes(
         }
 
         // ── Execute ───────────────────────────────────────────────────────────
+        // A network failure is a property of the target, not a bug here, so it
+        // is reported as 502 with a readable cause rather than crashing to 500.
         const started = Date.now();
-        const response = await fetch(url.toString(), init);
+        let response: Response;
+        try {
+            init.signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+            response = await fetch(url.toString(), init);
+        } catch (err) {
+            return reply.code(502).send(describeFetchError(err, url, REQUEST_TIMEOUT_MS));
+        }
         const durationMs = Date.now() - started;
 
-        const responseHeaders = Object.fromEntries(response.headers.entries());
+        const responseHeaders = collectHeaders(response.headers);
         const contentType = response.headers.get('content-type') ?? '';
 
         // ── Response body ──────────────────────────────────────────────────────
@@ -117,22 +210,30 @@ export async function registerRunnerRoutes(
         let parsedBody: unknown;
         let size: number;
 
-        if (contentType.startsWith('image/')) {
-            const buffer = await response.arrayBuffer();
-            const base64 = Buffer.from(buffer).toString('base64');
-            parsedBody = `data:${contentType};base64,${base64}`;
-            size = buffer.byteLength;
-        } else {
-            const text = await response.text();
-            parsedBody = text;
-            size = text.length;
-            if (contentType.includes('application/json')) {
-                try {
-                    parsedBody = JSON.parse(text);
-                } catch {
-                    parsedBody = text;
+        // The abort signal stays armed while the body streams, so a server that
+        // returns headers quickly but trickles the body can abort here too —
+        // that must surface as the same 502 envelope, not an unhandled 500.
+        try {
+            if (contentType.startsWith('image/')) {
+                const buffer = await response.arrayBuffer();
+                const base64 = Buffer.from(buffer).toString('base64');
+                parsedBody = `data:${contentType};base64,${base64}`;
+                size = buffer.byteLength;
+            } else {
+                const text = await response.text();
+                parsedBody = text;
+                // Byte length, not character count — they diverge for any non-ASCII body.
+                size = Buffer.byteLength(text, 'utf8');
+                if (isJsonContentType(contentType)) {
+                    try {
+                        parsedBody = JSON.parse(text);
+                    } catch {
+                        parsedBody = text;
+                    }
                 }
             }
+        } catch (err) {
+            return reply.code(502).send(describeFetchError(err, url, REQUEST_TIMEOUT_MS));
         }
 
         return reply.send({

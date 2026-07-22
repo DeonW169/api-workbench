@@ -112,7 +112,9 @@ export class TabsService {
     this.tabs.update(tabs =>
       tabs.map(t => {
         if (t.id !== activeId) return t;
-        const dirty = t.requestId !== null && fingerprint(req) !== t.savedFingerprint;
+        // Unsaved drafts count too — they were previously never dirty, so a
+        // fully-typed new request could be closed with no warning.
+        const dirty = fingerprint(req) !== t.savedFingerprint;
         return { ...t, request: req, label: req.name, method: req.method, isDirty: dirty };
       }),
     );
@@ -217,7 +219,7 @@ function reqToTab(req: ApiRequest): WorkspaceTab {
 /**
  * Semantic fingerprint for dirty detection.
  * Excludes id, name, timestamps, and collection metadata —
- * only the HTTP request content matters for dirty state.
+ * only the editable request content matters for dirty state.
  */
 function fingerprint(req: ApiRequest): string {
   return JSON.stringify({
@@ -229,5 +231,9 @@ function fingerprint(req: ApiRequest): string {
     bodyRaw: req.bodyRaw,
     bodyFormFields: req.bodyFormFields ?? [],
     auth: req.auth,
+    // Assertions are editable content: omitting them meant assertion edits
+    // never marked the tab dirty and were lost silently on close.
+    assertions: req.assertions ?? [],
+    variables: req.variables ?? [],
   });
 }

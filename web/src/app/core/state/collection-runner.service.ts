@@ -12,6 +12,7 @@ import {
 } from '../../shared/models/collection-run.model';
 import { CollectionsService } from './collections';
 import { EnvironmentsService } from './environments';
+import { FoldersService } from './folders';
 import { GlobalsService } from './globals';
 import { RequestsService } from './requests';
 import { AssertionService } from '../utils/assertion.service';
@@ -23,6 +24,7 @@ import { applyAuth } from '../utils/auth';
 export class CollectionRunnerService {
   private readonly requestsService  = inject(RequestsService);
   private readonly collectionsService = inject(CollectionsService);
+  private readonly foldersService     = inject(FoldersService);
   private readonly envService         = inject(EnvironmentsService);
   private readonly globalsService     = inject(GlobalsService);
   private readonly resolver           = inject(VariableResolverService);
@@ -113,8 +115,13 @@ export class CollectionRunnerService {
   // ── Scope resolution ──────────────────────────────────────────────────────
 
   /**
-   * Return the requests that belong to the given scope in their current
-   * in-memory order (most recently updated first, matching RequestsService).
+   * Return the requests in the given scope, in the exact sequence the tree
+   * displays them — folders first (in tree order, each folder's requests by
+   * their `order`), then the collection's own root-level requests.
+   *
+   * Matching the tree matters: the move up / down controls are the only way to
+   * influence run order, so a run that used a different sequence would make
+   * those controls appear not to work.
    */
   private resolveScope(scope: CollectionRunScope): ApiRequest[] {
     const all = this.requestsService.requests();
@@ -123,7 +130,21 @@ export class CollectionRunnerService {
         r => r.collectionId === scope.collectionId && r.folderId === scope.folderId,
       );
     }
-    return all.filter(r => r.collectionId === scope.collectionId);
+
+    const inCollection = all.filter(r => r.collectionId === scope.collectionId);
+    const ordered: ApiRequest[] = [];
+
+    for (const folder of this.foldersService.forCollection(scope.collectionId)) {
+      ordered.push(...inCollection.filter(r => r.folderId === folder.id));
+    }
+    ordered.push(...inCollection.filter(r => !r.folderId));
+
+    // Anything left over (e.g. a request in a nested folder the tree does not
+    // render) still runs, rather than being silently skipped.
+    const seen = new Set(ordered.map(r => r.id));
+    ordered.push(...inCollection.filter(r => !seen.has(r.id)));
+
+    return ordered;
   }
 
   // ── Single-request execution ──────────────────────────────────────────────

@@ -50,10 +50,14 @@ export class SettingsMenu {
     this.isImporting.set(true);
     this.importError.set(null);
 
-    const error = await this.transfer.importDb(file);
-
-    this.isImporting.set(false);
-    this.importError.set(error);
+    try {
+      this.importError.set(await this.transfer.importDb(file));
+    } catch (err) {
+      // Never leave the spinner stuck with no explanation.
+      this.importError.set(err instanceof Error ? err.message : 'Import failed.');
+    } finally {
+      this.isImporting.set(false);
+    }
   }
 
   // ── Variables export / import ──────────────────────────────────────────────
@@ -76,9 +80,12 @@ export class SettingsMenu {
     this.isImporting.set(true);
     this.importError.set(null);
 
-    const error = await this.varsTransfer.importVariables(file);
-
-    this.isImporting.set(false);
-    this.importError.set(error);
+    try {
+      this.importError.set(await this.varsTransfer.importVariables(file));
+    } catch (err) {
+      this.importError.set(err instanceof Error ? err.message : 'Import failed.');
+    } finally {
+      this.isImporting.set(false);
+    }
   }
 }

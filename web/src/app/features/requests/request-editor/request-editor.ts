@@ -16,8 +16,10 @@ import {
   BodyType,
   FormField,
   FormFieldType,
+  HTTP_METHODS,
   HttpMethod,
   KeyValueItem,
+  RequestVariable,
 } from '../../../shared/models/api-request.model';
 import {
   Assertion,
@@ -29,6 +31,26 @@ import { generateCurl } from '../../../core/utils/curl-generator';
 interface BodyTypeOption {
   value: BodyType;
   label: string;
+}
+
+/**
+ * Identity and ownership fields the editor does not expose for editing but must
+ * carry through untouched. Held as a signal (not plain fields) so requestSnapshot
+ * cannot go stale when a newly loaded request happens to match the current one.
+ */
+interface RequestMeta {
+  id: string;
+  name: string;
+  collectionId?: string | null;
+  folderId?: string | null;
+  variables: RequestVariable[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+function blankMeta(): RequestMeta {
+  const now = new Date().toISOString();
+  return { id: crypto.randomUUID(), name: 'New Request', variables: [], createdAt: now, updatedAt: now };
 }
 
 interface AuthTypeOption {
@@ -79,7 +101,7 @@ export class RequestEditor {
 
   // ── Constants ─────────────────────────────────────────────────────────────
 
-  readonly methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+  readonly methods = HTTP_METHODS;
   readonly assertionTypes = ASSERTION_TYPES;
 
   readonly bodyTypes: BodyTypeOption[] = [
@@ -157,9 +179,10 @@ export class RequestEditor {
     }
   });
 
+  // Pure: every field comes from a signal, so reading it twice yields the same
+  // object. `updatedAt` is stamped by RequestsService.save(), not here.
   private readonly requestSnapshot = computed<ApiRequest>(() => ({
-    id: this._id,
-    name: this._name,
+    ...this.meta(),
     method: this.method(),
     url: this.url(),
     queryParams: this.queryParams(),
@@ -169,9 +192,6 @@ export class RequestEditor {
     bodyFormFields: this.bodyFormFields(),
     auth: this.authConfig(),
     assertions: this.assertions(),
-    variables: [],
-    createdAt: this._createdAt,
-    updatedAt: new Date().toISOString(),
   }));
 
   // ── Inputs / Outputs ──────────────────────────────────────────────────────
@@ -193,11 +213,7 @@ export class RequestEditor {
 
   // ── Private ───────────────────────────────────────────────────────────────
 
-  // Plain mutable fields — not signals, but picked up by requestSnapshot
-  // whenever any signal dependency changes.
-  private _id: string = crypto.randomUUID();
-  private _name = 'New Request';
-  private _createdAt = new Date().toISOString();
+  private readonly meta = signal<RequestMeta>(blankMeta());
 
   constructor() {
     // When a saved request is loaded, populate all editor signals from it.
@@ -205,9 +221,17 @@ export class RequestEditor {
       const req = this.requestToLoad();
       if (!req) return;
       untracked(() => {
-        this._id = req.id;
-        this._name = req.name;
-        this._createdAt = req.createdAt;
+        // Carried through untouched — dropping any of these silently reassigns
+        // the request to no collection/folder on the next save.
+        this.meta.set({
+          id: req.id,
+          name: req.name,
+          collectionId: req.collectionId,
+          folderId: req.folderId,
+          variables: [...(req.variables ?? [])],
+          createdAt: req.createdAt,
+          updatedAt: req.updatedAt,
+        });
         this.method.set(req.method);
         this.url.set(req.url);
         this.queryParams.set([...req.queryParams]);

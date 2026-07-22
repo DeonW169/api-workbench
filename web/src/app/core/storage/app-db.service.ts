@@ -45,5 +45,38 @@ export class AppDbService extends Dexie {
       history: 'id, executedAt',
       globals: 'id',
     });
+
+    // Version 4: adds an explicit `order` field so collection runs execute in a
+    // sequence the user controls, instead of "most recently edited first".
+    this.version(4)
+      .stores({
+        requests: 'id, name, method, updatedAt, collectionId, folderId, order',
+        collections: 'id, name, updatedAt',
+        folders: 'id, collectionId, parentFolderId, updatedAt',
+        environments: 'id, name, updatedAt',
+        history: 'id, executedAt',
+        globals: 'id',
+      })
+      .upgrade(async tx => {
+        // Backfill from createdAt so existing requests keep a stable, sensible
+        // order rather than all colliding on 0.
+        const all = await tx.table<ApiRequest>('requests').toArray();
+        const byGroup = new Map<string, ApiRequest[]>();
+        for (const req of all) {
+          const key = `${req.collectionId ?? ''}/${req.folderId ?? ''}`;
+          byGroup.set(key, [...(byGroup.get(key) ?? []), req]);
+        }
+        for (const group of byGroup.values()) {
+          // Guarded: a record with no createdAt would otherwise throw inside the
+          // upgrade transaction, which aborts db.open() and makes the entire
+          // database — collections, environments, history — unopenable.
+          group.sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
+          await Promise.all(
+            group.map((req, index) =>
+              tx.table('requests').update(req.id, { order: index }),
+            ),
+          );
+        }
+      });
   }
 }

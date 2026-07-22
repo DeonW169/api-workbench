@@ -1,6 +1,17 @@
 import { Assertion } from './assertion.model';
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+
+/** All supported methods, in display order. Single source of truth for the UI. */
+export const HTTP_METHODS: readonly HttpMethod[] = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'HEAD',
+  'OPTIONS',
+] as const;
 export type BodyType = 'none' | 'json' | 'text' | 'form-data' | 'x-www-form-urlencoded';
 
 /** Field type for multipart form-data rows. */
@@ -69,6 +80,12 @@ export interface ApiRequest {
   assertions: Assertion[];
   collectionId?: string | null;
   folderId?: string | null;
+  /**
+   * Position within its collection/folder. Drives both tree display order and
+   * collection-run execution order. Optional only for records written before
+   * schema v4; treat a missing value as "sorts last".
+   */
+  order?: number;
   createdAt: string;
   updatedAt: string;
 }

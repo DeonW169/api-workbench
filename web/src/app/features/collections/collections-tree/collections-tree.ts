@@ -112,6 +112,23 @@ export class CollectionsTree {
     this.workspace.loadRequest(req);
   }
 
+  // ── Reordering ────────────────────────────────────────────────────────────
+  // Position drives collection-run execution order, so this is functional,
+  // not cosmetic.
+
+  moveRequest(id: string, direction: -1 | 1, event: MouseEvent): void {
+    event.stopPropagation();
+    this.reqService.move(id, direction);
+  }
+
+  isFirst(req: ApiRequest): boolean {
+    return this.reqService.isFirst(req);
+  }
+
+  isLast(req: ApiRequest): boolean {
+    return this.reqService.isLast(req);
+  }
+
   // ── Collection variables ──────────────────────────────────────────────────
 
   openVariables(coll: Collection, event: MouseEvent): void {

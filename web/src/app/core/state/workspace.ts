@@ -56,8 +56,11 @@ export class WorkspaceService {
   readonly assertionSummary = computed(() => this.tabsService.activeTab()?.assertionSummary ?? null);
 
   /**
-   * A fully-resolved clone of the current request for the preview panel.
-   * Uses the same variable merge order as execute() but has no side effects.
+   * A fully-resolved clone of the current request, with auth still held in the
+   * `auth` field rather than materialised into headers.
+   *
+   * This is what cURL export consumes — generateCurl() renders `auth` itself,
+   * so handing it an already-applied request would emit the credential twice.
    * Returns null when no request is loaded.
    */
   readonly resolvedPreview = computed(() => {
@@ -68,6 +71,16 @@ export class WorkspaceService {
     const envMap        = this.envService.activeVarMap();
     const requestMap    = buildVarMap(request.variables ?? []);
     return this.resolver.resolveForExecution(request, globalsMap, collectionMap, envMap, requestMap);
+  });
+
+  /**
+   * The resolved request with auth materialised into headers / query params —
+   * exactly what execute() sends. This is what the preview panel displays, so
+   * that the panel shows the real Authorization header instead of omitting it.
+   */
+  readonly resolvedPreviewWithAuth = computed(() => {
+    const resolved = this.resolvedPreview();
+    return resolved ? applyAuth(resolved) : null;
   });
 
   /**
